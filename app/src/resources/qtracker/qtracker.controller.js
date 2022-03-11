@@ -11,117 +11,96 @@ const requestNWC = async(req, res) =>{
     const has_attach = req.body.has_attach
     const project = req.body.project
     let user_id = null
-    let ref_code = "NWC000001"
 
-    sql.query("SELECT id FROM qtracker_not_working_component ORDER BY id DESC LIMIT 1", (err, results) =>{
-        if(!results){
-            results = []
-            results[0] = null
-        }
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
         if(!results[0]){
-
+            res.status(401)
         }else{
-            ref_code = "NWC000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
-        }
-        sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
-            if(!results[0]){
-                res.status(401)
-            }else{
-                user_id = results[0].id
-                sql.query("SELECT id FROM projects WHERE name = ?",  [project], (err, results) =>{
-                    const project_id = results[0].id
-                    sql.query("INSERT INTO qtracker_not_working_component(incidence_number, project_id, spref, description, user_id, attach) VALUES(?,?,?,?,?,?)", [ref_code,project_id, spref, description, user_id, has_attach], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.status(401)
-                        }else{
-                            
-                            if(process.env.NODE_MAILING == "1"){
-    
-                                // create reusable transporter object using the default SMTP transport
-                                var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                        user: "3DTracker@technipenergies.com",
-                                        pass: "1Q2w3e4r..24"    
-                                    }
-                                });
-    
-                                const html_message = "<p><b>INCIDENCE</b> NOT WORKING COMPONENT</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>USER</b> " + email + "</p> <p><b>SPREF</b> " + spref + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
-    
-                                sql.query("SELECT email FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE roles.id = 14 GROUP BY email", (err, results) =>{
-                                    if(!results[0]){
-    
-                                    }else{
-                                        for(let i = 0; i < results.length; i++){
-                                            transporter.sendMail({
-                                                from: '3DTracker@technipenergies.com',
-                                                to: results[i].email,
-                                                subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                                text: ref_code,
-                                                
-                                                html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
-                                        }
-                                    }
-                                })
-                                transporter.sendMail({
-                                    from: '3DTracker@technipenergies.com',
-                                    to: email,
-                                    subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                    text: ref_code,
+            let ref_code = results[0].code + "-NWC000001"
+            sql.query("SELECT id FROM qtracker_not_working_component ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id
+                            const admin_id = results[0].default_admin_id
+                            sql.query("INSERT INTO qtracker_not_working_component(incidence_number, project_id, spref, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code,project_id, spref, description, user_id, has_attach, admin_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
                                     
-                                    html: html_message
-                                }, (err, info) => {
-                                    console.log(info.envelope);
-                                    console.log(info.messageId);
-                                });
-                                
-                            }
-                              
-                              sql.query("SELECT id FROM roles WHERE `code` = ?)", ["E3D"], (err, results)=>{
-                                const admin_id = 14
-                                sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [admin_id], (err, results)=>{
-                                    if(!results[0]){
-                                        console.log("No users with materials role")
-                                        res.status(200)
-                                    }else{
-                                        const recievers = results
-                                        sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
-                                            const sender = results[0].id
-                                            const sender_name = results[0].name
-                                            for(let i = 0; i < recievers.length; i++){
-                                                
-                                                sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [recievers[i].model_id, "New NWC request (" + ref_code +") by " + sender_name + "."], (err, results)=>{
-                                                    if(err){
-                                                        console.log(err)
-                                                        res.status(401)
-                                                    }else{
-                                                        
-                                                    }
-                                                })
+                                    if(process.env.NODE_MAILING == "1"){
+            
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"    
                                             }
-                                            console.log("Request sent")
-                
+                                        });
+            
+                                        const html_message = "<p><b>INCIDENCE</b> NOT WORKING COMPONENT</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>SPREF</b> " + spref + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+            
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
                                         })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
+                                        
                                     }
-                                })
-                
+                                      
+                                    
+                                    res.send({filename: ref_code}).status(200)
+                                }
                             })
-                            res.send({filename: ref_code}).status(200)
-                        }
-                    })
+                        })
+                        
+                    }
                 })
-                
-            }
-        })
-       
+               
+            })
+        }
     })
+    
 }
 
 const requestNVN = async(req, res) =>{
@@ -131,114 +110,93 @@ const requestNVN = async(req, res) =>{
     const has_attach = req.body.has_attach
     const project = req.body.project
     let user_id = null
-    let ref_code = "NVN000001"
 
-    sql.query("SELECT id FROM qtracker_not_view_in_navis ORDER BY id DESC LIMIT 1", (err, results) =>{
-        if(!results){
-            results = []
-            results[0] = null
-        }
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
         if(!results[0]){
-
+            res.status(401)
         }else{
-            ref_code = "NVN000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
-        }
-        sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
-            if(!results[0]){
-                res.status(401)
-            }else{
-                user_id = results[0].id
-                sql.query("SELECT id FROM projects WHERE name = ?",  [project], (err, results) =>{
-                    const project_id = results[0].id
-                    sql.query("INSERT INTO qtracker_not_view_in_navis(incidence_number, project_id, name, description, user_id, attach) VALUES(?,?,?,?,?,?)", [ref_code, project_id, name, description, user_id, has_attach], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.status(401)
-                        }else{
-                            
-                            if(process.env.NODE_MAILING == "1"){
-                                // create reusable transporter object using the default SMTP transport
-                                var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                        user: "3DTracker@technipenergies.com",
-                                        pass: "1Q2w3e4r..24"  
-                                    }
-                                });
-
-                                const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN NAVIS</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
-
-                                sql.query("SELECT email FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE roles.id = 14 GROUP BY email", (err, results) =>{
-                                    if(!results[0]){
-
-                                    }else{
-                                        for(let i = 0; i < results.length; i++){
-                                            transporter.sendMail({
-                                                from: '3DTracker@technipenergies.com',
-                                                to: results[i].email,
-                                                subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                                text: ref_code,
-                                                
-                                                html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
-                                        }
-                                    }
-                                })
-                                transporter.sendMail({
-                                    from: '3DTracker@technipenergies.com',
-                                    to: email,
-                                    subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                    text: ref_code,
+            let ref_code = results[0].code + "-NVN000001"
+            sql.query("SELECT id FROM qtracker_not_view_in_navis ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = "NVN000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id
+                            const admin_id = results[0].default_admin_id
+                            sql.query("INSERT INTO qtracker_not_view_in_navis(incidence_number, project_id, name, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, name, description, user_id, has_attach, admin_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
                                     
-                                    html: html_message
-                                }, (err, info) => {
-                                    console.log(info.envelope);
-                                    console.log(info.messageId);
-                                });
-                            }
-                            
-                            sql.query("SELECT id FROM roles WHERE `code` = ?)", ["E3D"], (err, results)=>{
-                                const admin_id = 14
-                                sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [admin_id], (err, results)=>{
-                                    if(!results[0]){
-                                        console.log("No users with materials role")
-                                        res.status(200)
-                                    }else{
-                                        const recievers = results
-                                        sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
-                                            const sender = results[0].id
-                                            const sender_name = results[0].name
-                                            for(let i = 0; i < recievers.length; i++){
-                                                
-                                                sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [recievers[i].model_id, "New NVN request (" + ref_code +") by " + sender_name + "."], (err, results)=>{
-                                                    if(err){
-                                                        console.log(err)
-                                                        res.status(401)
-                                                    }else{
-                                                        
-                                                    }
-                                                })
+                                    if(process.env.NODE_MAILING == "1"){
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"  
                                             }
-                                            console.log("Request sent")
-                
+                                        });
+        
+                                        const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN NAVIS</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+        
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
                                         })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
                                     }
-                                })
-                
+                                    
+                                    
+                                    res.send({filename: ref_code}).status(200)
+                                }
                             })
-                            res.send({filename: ref_code}).status(200)
-                        }
-                    })
+                        })
+                    }
                 })
-            }
-        })
-       
+               
+            })
+        }
     })
+    
 }
 
 const requestNRI = async(req, res) =>{
@@ -248,113 +206,93 @@ const requestNRI = async(req, res) =>{
     const has_attach = req.body.has_attach
     const project = req.body.project
     let user_id = null
-    let ref_code = "NRI000001"
 
-    sql.query("SELECT id FROM qtracker_not_reporting_isometric ORDER BY id DESC LIMIT 1", (err, results) =>{
-        if(!results){
-            results = []
-            results[0] = null
-        }
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
         if(!results[0]){
-
+            res.status(401)
         }else{
-            ref_code = "NRI000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
-        }
-        sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
-            if(!results[0]){
-                res.status(401)
-            }else{
-                user_id = results[0].id
-                sql.query("SELECT id FROM projects WHERE name = ?",  [project], (err, results) =>{
-                    const project_id = results[0].id
-                    sql.query("INSERT INTO qtracker_not_reporting_isometric(incidence_number, project_id, pipe, description, user_id, attach) VALUES(?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.status(401)
-                        }else{
-                            
-                            if(process.env.NODE_MAILING == "1"){
-                                // create reusable transporter object using the default SMTP transport
-                                var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                        user: "3DTracker@technipenergies.com",
-                                        pass: "1Q2w3e4r..24"  
-                                    }
-                                });
-
-                                const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN ISOMETRIC</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
-
-                                sql.query("SELECT email FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE roles.id = 14 GROUP BY email", (err, results) =>{
-                                    if(!results[0]){
-
-                                    }else{
-                                        for(let i = 0; i < results.length; i++){
-                                            transporter.sendMail({
-                                                from: '3DTracker@technipenergies.com',
-                                                to: results[i].email,
-                                                subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                                text: ref_code,
-                                                
-                                                html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
-                                        }
-                                    }
-                                })
-                                transporter.sendMail({
-                                    from: '3DTracker@technipenergies.com',
-                                    to: email,
-                                    subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                    text: ref_code,
+            let ref_code = results[0].code + "-NRI000001"
+            sql.query("SELECT id FROM qtracker_not_reporting_isometric ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id , admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id
+                            const admin_id = results[0].id
+                            sql.query("INSERT INTO qtracker_not_reporting_isometric(incidence_number, project_id, pipe, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
                                     
-                                    html: html_message
-                                }, (err, info) => {
-                                    console.log(info.envelope);
-                                    console.log(info.messageId);
-                                });
-                            }
-                            sql.query("SELECT id FROM roles WHERE `code` = ?)", ["E3D"], (err, results)=>{
-                                const admin_id = 14
-                                sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [admin_id], (err, results)=>{
-                                    if(!results[0]){
-                                        console.log("No users with materials role")
-                                        res.status(200)
-                                    }else{
-                                        const recievers = results
-                                        sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
-                                            const sender = results[0].id
-                                            const sender_name = results[0].name
-                                            for(let i = 0; i < recievers.length; i++){
-                                                
-                                                sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [recievers[i].model_id, "New NRI request (" + ref_code +") by " + sender_name + "."], (err, results)=>{
-                                                    if(err){
-                                                        console.log(err)
-                                                        res.status(401)
-                                                    }else{
-                                                        
-                                                    }
-                                                })
+                                    if(process.env.NODE_MAILING == "1"){
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"  
                                             }
-                                            console.log("Request sent")
-                
+                                        });
+        
+                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN ISOMETRIC</p> <p><b>REFERENCE</b> " + ref_code + + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+        
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
                                         })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
                                     }
-                                })
-                
+                                   
+                                    res.send({filename: ref_code}).status(200)
+                                }
                             })
-                            res.send({filename: ref_code}).status(200)
-                        }
-                    })
+                        })
+                    }
                 })
-            }
-        })
-       
+               
+            })
+        }
     })
+
+    
 }
 
 const requestNRB = async(req, res) =>{
@@ -364,114 +302,91 @@ const requestNRB = async(req, res) =>{
     const has_attach = req.body.has_attach
     const project = req.body.project
     let user_id = null
-    let ref_code = "NRB000001"
 
-    sql.query("SELECT id FROM qtracker_not_reporting_bfile ORDER BY id DESC LIMIT 1", (err, results) =>{
-        if(!results){
-            results = []
-            results[0] = null
-        }
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
         if(!results[0]){
-
+            res.status(401)
         }else{
-            ref_code = "NRB000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
-        }
-        sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
-            if(!results[0]){
-                res.status(401)
-            }else{
-                user_id = results[0].id
-                sql.query("SELECT id FROM projects WHERE name = ?",  [project], (err, results) =>{
-                    const project_id = results[0].id
-                    sql.query("INSERT INTO qtracker_not_reporting_bfile(incidence_number, project_id, pipe, description, user_id, attach) VALUES(?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.status(401)
-                        }else{
-                            
-                            if(process.env.NODE_MAILING == "1"){
-                                // create reusable transporter object using the default SMTP transport
-                                var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                        user: "3DTracker@technipenergies.com",
-                                        pass: "1Q2w3e4r..24"  
-                                    }
-                                });
-
-                                const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN BFILE</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
-
-                                sql.query("SELECT email FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE roles.id = 14 GROUP BY email", (err, results) =>{
-                                    if(!results[0]){
-
-                                    }else{
-                                        for(let i = 0; i < results.length; i++){
-                                            transporter.sendMail({
-                                                from: '3DTracker@technipenergies.com',
-                                                to: results[i].email,
-                                                subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                                text: ref_code,
-                                                
-                                                html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
-                                        }
-                                    }
-                                })
-                                transporter.sendMail({
-                                    from: '3DTracker@technipenergies.com',
-                                    to: email,
-                                    subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                    text: ref_code,
+            let ref_code = results[0].code + "-NRB000001"
+            sql.query("SELECT id FROM qtracker_not_reporting_bfile ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id 
+                            const admin_id = results[0].default_admin_id
+                            sql.query("INSERT INTO qtracker_not_reporting_bfile(incidence_number, project_id, pipe, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
                                     
-                                    html: html_message
-                                }, (err, info) => {
-                                    console.log(info.envelope);
-                                    console.log(info.messageId);
-                                });
-                            }
-                            
-                            sql.query("SELECT id FROM roles WHERE `code` = ?)", ["E3D"], (err, results)=>{
-                                const admin_id = 14
-                                sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [admin_id], (err, results)=>{
-                                    if(!results[0]){
-                                        console.log("No users with materials role")
-                                        res.status(200)
-                                    }else{
-                                        const recievers = results
-                                        sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
-                                            const sender = results[0].id
-                                            const sender_name = results[0].name
-                                            for(let i = 0; i < recievers.length; i++){
-                                                
-                                                sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [recievers[i].model_id, "New NRB request (" + ref_code +") by " + sender_name + "."], (err, results)=>{
-                                                    if(err){
-                                                        console.log(err)
-                                                        res.status(401)
-                                                    }else{
-                                                        
-                                                    }
-                                                })
+                                    if(process.env.NODE_MAILING == "1"){
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"  
                                             }
-                                            console.log("Request sent")
-                
+                                        });
+        
+                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN BFILE</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+        
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
                                         })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
                                     }
-                                })
-                
+                                    res.send({filename: ref_code}).status(200)
+                                }
                             })
-                            res.send({filename: ref_code}).status(200)
-                        }
-                    })
+                        })
+                    }
                 })
-            }
-        })
-       
+               
+            })
+        }
     })
+    
 }
 
 const requestNRIDS = async(req, res) =>{
@@ -479,113 +394,91 @@ const requestNRIDS = async(req, res) =>{
     const email = req.body.user
     const project = req.body.project
     let user_id = null
-    let ref_code = "NRIDS000001"
 
-    sql.query("SELECT id FROM qtracker_not_reporting_ifc_dgn_step ORDER BY id DESC LIMIT 1", (err, results) =>{
-        if(!results){
-            results = []
-            results[0] = null
-        }
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
         if(!results[0]){
-
+            res.status(401)
         }else{
-            ref_code = "NRIDS000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
-        }
-        sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
-            if(!results[0]){
-                res.status(401)
-            }else{
-                user_id = results[0].id
-                sql.query("SELECT id FROM projects WHERE name = ?",  [project], (err, results) =>{
-                    const project_id = results[0].id
-                    sql.query("INSERT INTO qtracker_not_reporting_ifc_dgn_step(incidence_number, project_id, name, user_id) VALUES(?,?,?,?)", [ref_code, project_id, name, user_id], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.status(401)
-                        }else{
-                            
-                            if(process.env.NODE_MAILING == "1"){
-                                // create reusable transporter object using the default SMTP transport
-                                var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                        user: "3DTracker@technipenergies.com",
-                                        pass: "1Q2w3e4r..24"  
-                                    }
-                                });
-
-                                const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN IFC/DGN/STEP</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p>"
-
-                                sql.query("SELECT email FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE roles.id = 14 GROUP BY email", (err, results) =>{
-                                    if(!results[0]){
-
-                                    }else{
-                                        for(let i = 0; i < results.length; i++){
-                                            transporter.sendMail({
-                                                from: '3DTracker@technipenergies.com',
-                                                to: results[i].email,
-                                                subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                                text: ref_code,
-                                                
-                                                html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
-                                        }
-                                    }
-                                })
-                                transporter.sendMail({
-                                    from: '3DTracker@technipenergies.com',
-                                    to: email,
-                                    subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                    text: ref_code,
+            let ref_code = results[0].code + "-NRIDS000001"
+            sql.query("SELECT id FROM qtracker_not_reporting_ifc_dgn_step ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id
+                            const admin_id = results[0].default_admin_id
+                            sql.query("INSERT INTO qtracker_not_reporting_ifc_dgn_step(incidence_number, project_id, name, user_id, admin_id) VALUES(?,?,?,?,?)", [ref_code, project_id, name, user_id, admin_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
                                     
-                                    html: html_message
-                                }, (err, info) => {
-                                    console.log(info.envelope);
-                                    console.log(info.messageId);
-                                });
-                            }
-                            sql.query("SELECT id FROM roles WHERE `code` = ?)", ["E3D"], (err, results)=>{
-                                const admin_id = 14
-                                sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [admin_id], (err, results)=>{
-                                    if(!results[0]){
-                                        console.log("No users with materials role")
-                                        res.status(200)
-                                    }else{
-                                        const recievers = results
-                                        sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
-                                            const sender = results[0].id
-                                            const sender_name = results[0].name
-                                            for(let i = 0; i < recievers.length; i++){
-                                                
-                                                sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [recievers[i].model_id, "New NRIDS request (" + ref_code +") by " + sender_name + "."], (err, results)=>{
-                                                    if(err){
-                                                        console.log(err)
-                                                        res.status(401)
-                                                    }else{
-                                                        
-                                                    }
-                                                })
+                                    if(process.env.NODE_MAILING == "1"){
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"  
                                             }
-                                            console.log("Request sent")
-                
+                                        });
+        
+                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN IFC/DGN/STEP</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p>"
+        
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
                                         })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
                                     }
-                                })
-                
+                                    res.send({filename: ref_code}).status(200)
+                                }
                             })
-                            res.send({filename: ref_code}).status(200)
-                        }
-                    })
+                        })
+                    }
                 })
-            }
-        })
-       
+               
+            })
+        }
     })
+    
 }
 
 const requestRR = async(req, res) =>{
@@ -595,114 +488,93 @@ const requestRR = async(req, res) =>{
     const email = req.body.user
     const project = req.body.project
     let user_id = null
-    let ref_code = "RR000001"
 
-    sql.query("SELECT id FROM qtracker_request_report ORDER BY id DESC LIMIT 1", (err, results) =>{
-        if(!results){
-            results = []
-            results[0] = null
-        }
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
         if(!results[0]){
-
+            res.status(401)
         }else{
-            ref_code = "RR000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
-        }
-        sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
-            if(!results[0]){
-                res.status(401)
-            }else{
-                user_id = results[0].id
-                sql.query("SELECT id FROM projects WHERE name = ?",  [project], (err, results) =>{
-                    const project_id = results[0].id
-                    sql.query("INSERT INTO qtracker_request_report(incidence_number, project_id, items_to_report, scope, description, user_id) VALUES(?,?,?,?,?,?)", [ref_code, project_id, items, scope, description, user_id], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.status(401)
-                        }else{
-                            
-                            if(process.env.NODE_MAILING == "1"){
-                                // create reusable transporter object using the default SMTP transport
-                                var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                        user: "3DTracker@technipenergies.com",
-                                        pass: "1Q2w3e4r..24"  
-                                    }
-                                });
-
-                                const html_message = "<p><b>INCIDENCE</b> REQUEST REPORT</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>USER</b> " + email + "</p> <p><b>ITEMS TO REPORT</b> " + items + "</p>" + "</p> <p><b>SCOPE</b> " + scope + "</p>" + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
-
-                                sql.query("SELECT email FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE roles.id = 14 GROUP BY email", (err, results) =>{
-                                    if(!results[0]){
-
-                                    }else{
-                                        for(let i = 0; i < results.length; i++){
-                                            transporter.sendMail({
-                                                from: '3DTracker@technipenergies.com',
-                                                to: results[i].email,
-                                                subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                                text: ref_code,
-                                                
-                                                html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
-                                        }
-                                    }
-                                })
-                                transporter.sendMail({
-                                    from: '3DTracker@technipenergies.com',
-                                    to: email,
-                                    subject: process.env.NODE_PROJECT_NAME + ' ' + ref_code,
-                                    text: ref_code,
+            let ref_code = results[0].code + "-RR000001"
+            sql.query("SELECT id FROM qtracker_request_report ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id
+                            const admin_id = results[0].default_admin_id
+                            sql.query("INSERT INTO qtracker_request_report(incidence_number, project_id, items_to_report, scope, description, user_id, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, items, scope, description, user_id, admin_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
                                     
-                                    html: html_message
-                                }, (err, info) => {
-                                    console.log(info.envelope);
-                                    console.log(info.messageId);
-                                });
-                            }
-                            
-                            sql.query("SELECT id FROM roles WHERE `code` = ?)", ["E3D"], (err, results)=>{
-                                const admin_id = 14
-                                sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [admin_id], (err, results)=>{
-                                    if(!results[0]){
-                                        console.log("No users with materials role")
-                                        res.status(200)
-                                    }else{
-                                        const recievers = results
-                                        sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
-                                            const sender = results[0].id
-                                            const sender_name = results[0].name
-                                            for(let i = 0; i < recievers.length; i++){
-                                                
-                                                sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [recievers[i].model_id, "New RR request (" + ref_code +") by " + sender_name + "."], (err, results)=>{
-                                                    if(err){
-                                                        console.log(err)
-                                                        res.status(401)
-                                                    }else{
-                                                        
-                                                    }
-                                                })
+                                    if(process.env.NODE_MAILING == "1"){
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"  
                                             }
-                                            console.log("Request sent")
-                
+                                        });
+        
+                                        const html_message = "<p><b>INCIDENCE</b> REQUEST REPORT</p> <p><b>REFERENCE</b> " + ref_code + " <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>ITEMS TO REPORT</b> " + items + "</p>" + "</p> <p><b>SCOPE</b> " + scope + "</p>" + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+        
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
                                         })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
                                     }
-                                })
-                
+                                    
+                                    res.send({filename: ref_code}).status(200)
+                                }
                             })
-                            res.send({filename: ref_code}).status(200)
-                        }
-                    })
+                        })
+                    }
                 })
-            }
-        })
-       
+               
+            })
+        }
     })
+
+    
 }
 
 const uploadAttach = async(req, res) =>{
@@ -727,7 +599,6 @@ const uploadAttach = async(req, res) =>{
 
 const existsAttach = async(req, res) =>{
     fileName = req.params.incidence_number
-    
     let file = null
 
     fs.readdir('./app/storage/qtracker', function (err, files) {
@@ -743,7 +614,6 @@ const existsAttach = async(req, res) =>{
             }
         });
          if(file){
-            console.log(file)
             res.send({filename: file}).status(200)
          }else{
              res.send({filename: null}).status(200)
@@ -755,44 +625,44 @@ const existsAttach = async(req, res) =>{
   const getAttach = async(req, res) =>{
     fileName = req.params.fileName
 
-    var file = fs.createReadStream('./app/storage/qtracker/'+fileName);
+    var file = fs.createReadStream('./app/storage/qtracker/'+fileName); 
     file.pipe(res);
       
   
   }
 
 const getNWC = async(req, res) =>{
-    sql.query("SELECT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id", (err, results) =>{
+    sql.query("SELECT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
     })
 }
 
 const getNVN = async(req, res) =>{
-    sql.query("SELECT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id", (err, results) =>{
+    sql.query("SELECT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
     })
 }
 
 const getNRI = async(req, res) =>{
-    sql.query("SELECT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id", (err, results) =>{
+    sql.query("SELECT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
     })
 }
 
 const getNRB = async(req, res) =>{
-    sql.query("SELECT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id", (err, results) =>{
+    sql.query("SELECT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_bfile.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
     })
 }
 
 const getNRIDS = async(req, res) =>{
-    sql.query("SELECT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id", (err, results) =>{
+    sql.query("SELECT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
     })
 }
 
 const getRP = async(req, res) =>{
-    sql.query("SELECT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id", (err, results) =>{
+    sql.query("SELECT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
     })
 }
@@ -802,6 +672,7 @@ const updateStatus = async(req, res) =>{
     const status_id = req.body.status_id
     const type = req.body.type
     const email = req.body.email
+    const project = req.body.project
 
     console.log(incidence_number)
     
@@ -845,8 +716,8 @@ const updateStatus = async(req, res) =>{
                                                 port: 25,
                                                 secure: false,
                                                 auth: {
-                                                    user: "alex.dominguez-ortega@external.technipenergies.com",
-                                                    pass: "Technipenergies21"
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24" 
                                                 }
                                             });
 
@@ -857,9 +728,9 @@ const updateStatus = async(req, res) =>{
                                             const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
                 
                                             transporter.sendMail({
-                                            from: 'alex.dominguez-ortega@external.technipenergies.com"',
+                                            from: '3DTracker@technipenergies.com',
                                             to: reciever_email,
-                                            subject: process.env.NODE_PROJECT_NAME + ' ' + incidence_number + " has been " + new_status,
+                                            subject: project + ' ' + incidence_number + " has been " + new_status,
                                             text: incidence_number,
                                             
                                             html: html_message
@@ -918,8 +789,8 @@ const updateStatus = async(req, res) =>{
                                                 port: 25,
                                                 secure: false,
                                                 auth: {
-                                                    user: "alex.dominguez-ortega@external.technipenergies.com",
-                                                    pass: "Technipenergies21"
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24" 
                                                 }
                                             });
 
@@ -930,9 +801,9 @@ const updateStatus = async(req, res) =>{
                                             const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
                 
                                             transporter.sendMail({
-                                            from: 'alex.dominguez-ortega@external.technipenergies.com"',
+                                            from: '3DTracker@technipenergies.com"',
                                             to: reciever_email,
-                                            subject: process.env.NODE_PROJECT_NAME + ' ' + incidence_number + " has been " + new_status,
+                                            subject: project + ' ' + incidence_number + " has been " + new_status,
                                             text: incidence_number,
                                             
                                             html: html_message
@@ -990,8 +861,8 @@ const updateStatus = async(req, res) =>{
                                                 port: 25,
                                                 secure: false,
                                                 auth: {
-                                                    user: "alex.dominguez-ortega@external.technipenergies.com",
-                                                    pass: "Technipenergies21"
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24" 
                                                 }
                                             });
 
@@ -1002,9 +873,9 @@ const updateStatus = async(req, res) =>{
                                             const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
                 
                                             transporter.sendMail({
-                                            from: 'alex.dominguez-ortega@external.technipenergies.com"',
+                                            from: '3DTracker@technipenergies.com',
                                             to: reciever_email,
-                                            subject: process.env.NODE_PROJECT_NAME + ' ' + incidence_number + " has been " + new_status,
+                                            subject: project + ' ' + incidence_number + " has been " + new_status,
                                             text: incidence_number,
                                             
                                             html: html_message
@@ -1062,8 +933,8 @@ const updateStatus = async(req, res) =>{
                                                 port: 25,
                                                 secure: false,
                                                 auth: {
-                                                    user: "alex.dominguez-ortega@external.technipenergies.com",
-                                                    pass: "Technipenergies21"
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24" 
                                                 }
                                             });
 
@@ -1074,9 +945,9 @@ const updateStatus = async(req, res) =>{
                                             const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
                 
                                             transporter.sendMail({
-                                            from: 'alex.dominguez-ortega@external.technipenergies.com"',
+                                            from: '3DTracker@technipenergies.com',
                                             to: reciever_email,
-                                            subject: process.env.NODE_PROJECT_NAME + ' ' + incidence_number + " has been " + new_status,
+                                            subject: project + ' ' + incidence_number + " has been " + new_status,
                                             text: incidence_number,
                                             
                                             html: html_message
@@ -1135,8 +1006,8 @@ const updateStatus = async(req, res) =>{
                                                 port: 25,
                                                 secure: false,
                                                 auth: {
-                                                    user: "alex.dominguez-ortega@external.technipenergies.com",
-                                                    pass: "Technipenergies21"
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24" 
                                                 }
                                             });
 
@@ -1147,9 +1018,9 @@ const updateStatus = async(req, res) =>{
                                             const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
                 
                                             transporter.sendMail({
-                                            from: 'alex.dominguez-ortega@external.technipenergies.com"',
+                                            from: '3DTracker@technipenergies.com',
                                             to: reciever_email,
-                                            subject: process.env.NODE_PROJECT_NAME + ' ' + incidence_number + " has been " + new_status,
+                                            subject: project + ' ' + incidence_number + " has been " + new_status,
                                             text: incidence_number,
                                             
                                             html: html_message
@@ -1207,8 +1078,8 @@ const updateStatus = async(req, res) =>{
                                                 port: 25,
                                                 secure: false,
                                                 auth: {
-                                                    user: "alex.dominguez-ortega@external.technipenergies.com",
-                                                    pass: "Technipenergies21"
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24" 
                                                 }
                                             });
 
@@ -1219,9 +1090,9 @@ const updateStatus = async(req, res) =>{
                                             const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
                 
                                             transporter.sendMail({
-                                            from: 'alex.dominguez-ortega@external.technipenergies.com"',
+                                            from: '3DTracker@technipenergies.com',
                                             to: reciever_email,
-                                            subject: process.env.NODE_PROJECT_NAME + ' ' + incidence_number + " has been " + new_status,
+                                            subject: project + ' ' + incidence_number + " has been " + new_status,
                                             text: incidence_number,
                                             
                                             html: html_message
@@ -1435,15 +1306,15 @@ const statusData = (req, res) =>{
 }
 
 const getProjects = async(req, res) =>{
-    sql.query("SELECT * FROM projects", (err, results) =>{
+    sql.query("SELECT projects.name as name, projects.code, users.name as admin, projects.id FROM projects LEFT JOIN users ON projects.default_admin_id = users.id", (err, results) =>{
         res.json({projects : results}).status(200)
     })
 }
 
 const submitProjects = async(req, res) =>{
     const rows = req.body.rows
-    
-    for(let i = 1; i < rows.length; i++){
+    console.log(rows)
+    for(let i = 0; i < rows.length; i++){
       if(!rows[i]["Project"] || rows[i]["Project"] == ""){
         sql.query("DELETE FROM projects WHERE id = ?", [rows[i]["id"]], (err, results)=>{
             if(err){
@@ -1452,23 +1323,32 @@ const submitProjects = async(req, res) =>{
             }
         })
       }else{
-        sql.query("SELECT * FROM projects WHERE id = ?", [rows[i]["id"]], (err, results)=>{
+        sql.query("SELECT id FROM users WHERE name = ?", [rows[i]["Admin"]], (err, results) =>{
             if(!results[0]){
-              sql.query("INSERT INTO projects(name, code) VALUES(?,?)", [rows[i]["Project"], rows[i]["Code"]], (err, results)=>{
-                if(err){
-                        console.log(err)
-                        res.status(401)
-                    }
-                })
+                console.log("Admin not found")
             }else{
-                sql.query("UPDATE projects SET name = ?, code = ? WHERE id = ?", [rows[i]["Project"], rows[i]["Code"], rows[i]["id"]], (err, results) =>{
-                    if(err){
-                        console.log(err)
-                        res.status(401)
+                const admin_id = results[0].id
+                sql.query("SELECT * FROM projects WHERE id = ?", [rows[i]["id"]], (err, results)=>{
+                    if(!results[0]){
+                      sql.query("INSERT INTO projects(name, code, default_admin_id) VALUES(?,?,?)", [rows[i]["Project"], rows[i]["Code"], admin_id], (err, results)=>{
+                        if(err){
+                                console.log(err)
+                                res.status(401)
+                            }
+                        })
+                    }else{
+                        
+                        sql.query("UPDATE projects SET name = ?, code = ?, default_admin_id = ? WHERE id = ?", [rows[i]["Project"], rows[i]["Code"], admin_id, rows[i]["id"]], (err, results) =>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }
+                        })
                     }
-                })
+                }) 
             }
-        }) 
+        })
+        
       }
     }
 }
