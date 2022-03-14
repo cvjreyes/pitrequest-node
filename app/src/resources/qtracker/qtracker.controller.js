@@ -3,6 +3,7 @@ const qtrackerMiddleware = require("../qtracker/qtracker.middleware");
 const nodemailer = require("nodemailer");
 const path = require('path');
 const fs = require("fs");
+const removeUploadedFiles = require("multer/lib/remove-uploaded-files");
 
 const requestNWC = async(req, res) =>{
     const spref = req.body.spref
@@ -667,6 +668,115 @@ const getRP = async(req, res) =>{
     })
 }
 
+const getNWCByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results})
+            })
+        }
+    })
+
+}
+
+const getNVNByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results})
+            })
+        }
+    })
+}
+
+const getNRIByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results})
+            })
+        }
+    })
+}
+
+const getNRBByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_bfile.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results})
+            })
+        }
+    })
+}
+
+const getNRIDSByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results})
+            })
+        }
+    })
+}
+
+const getRPByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results})
+            })
+        }
+    })
+}
+
 const updateStatus = async(req, res) =>{
     const incidence_number = req.body.incidence_number
     const status_id = req.body.status_id
@@ -711,33 +821,43 @@ const updateStatus = async(req, res) =>{
                                         res.status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                                            let observation = null
+                                            sql.query("SELECT observations FROM qtracker_not_working_component WHERE incidence_number = ?", [incidence_number], (err, results)=>{
+                                                if(results[0]){
+                                                    observation = results[0].observations
+                                                    console.log(observation)
+                                                    var transporter = nodemailer.createTransport({
+                                                        host: "es001vs0064",
+                                                        port: 25,
+                                                        secure: false,
+                                                        auth: {
+                                                            user: "3DTracker@technipenergies.com",
+                                                            pass: "1Q2w3e4r..24" 
+                                                        }
+                                                    });
+        
+                                                    if(reciever_email = "super@user.com"){
+                                                        reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                    }
+                        
+                                                    let html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                                                    if(observation != null){
+                                                        html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p> <p> Observations: " + observation  
+                                                    }
+                                                    transporter.sendMail({
+                                                    from: '3DTracker@technipenergies.com',
+                                                    to: reciever_email,
+                                                    subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                    text: incidence_number,
+                                                    
+                                                    html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
                                                 }
-                                            });
-
-                                            if(reciever_email = "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
-                                            }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
+                                            })
                                             
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
                                     }
                                 })
@@ -1182,6 +1302,71 @@ const updateObservations = async(req, res) =>{
     }
 }
 
+const updateHours = async(req, res) =>{
+    const incidence_number = req.body.incidence_number
+    const hours = req.body.hours
+
+    if(incidence_number.includes("NRIDS")){
+        sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{        
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(incidence_number.includes("NWC")){
+        sql.query("UPDATE qtracker_not_working_component SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{   
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(incidence_number.includes("NVN")){
+        sql.query("UPDATE qtracker_not_view_in_navis SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(incidence_number.includes("NRI")){
+        sql.query("UPDATE qtracker_not_reporting_isometric SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(incidence_number.includes("NRB")){
+        sql.query("UPDATE qtracker_not_reporting_bfile SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(incidence_number.includes("RR")){
+        sql.query("UPDATE qtracker_request_report SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                
+                res.send({success: 1}).status(200)
+            }
+        })
+    }
+}
+
 const statusData = (req, res) =>{
     let pending = 0
     let progress = 0
@@ -1353,6 +1538,7 @@ const submitProjects = async(req, res) =>{
     }
 }
 
+
 module.exports = {
     requestNWC,
     requestNVN,
@@ -1369,8 +1555,15 @@ module.exports = {
     getNRB,
     getNRIDS,
     getRP,
+    getNWCByProjects,
+    getNVNByProjects,
+    getNRIByProjects,
+    getNRBByProjects,
+    getNRIDSByProjects,
+    getRPByProjects,
     updateStatus,
     updateObservations,
+    updateHours,
     statusData,
     getProjects,
     submitProjects

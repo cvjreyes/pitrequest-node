@@ -36,8 +36,6 @@ module.exports = app => {
     app.get("/usersWithRoles", users.usersWithRoles)
 
     app.post("/users/manageRoles", users.manageRoles)
-
-    app.get("/downloadUsers", users.downloadUsers)
     
     app.get("/notifications/:email", users.notifications)
 
@@ -48,4 +46,10 @@ module.exports = app => {
     app.post("/markNotificationAsUnread", users.markNotificationAsUnread)
 
     app.post("/deleteNotification", users.deleteNotification)
+    
+    app.get("/downloadUsers", users.downloadUsers)
+
+    app.get("/getRolesByEmail/:email", users.getRolesByEmail)
+
+    app.get("/getProjectsByEmailExport/:email", users.getProjectsByEmailExport)
   };

@@ -404,16 +404,6 @@ exports.manageRoles = (req, res) =>{
   })
 }
 
-exports.downloadUsers = (req, res) =>{
-  sql.query("SELECT users.name as username, email, roles.name as role FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id ORDER BY users.name ASC", (err, results) =>{
-    if(err){
-      res.status(401)
-    }else{
-      res.json(results).status(200)
-    }
-  })
-}
-
 exports.notifications = (req, res) =>{
   const email = req.params.email
   sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{
@@ -479,5 +469,33 @@ exports.deleteNotification = (req, res) =>{
     }else{
         res.send({success: 1}).status(200)
     }
+  })
+}
+
+exports.downloadUsers = async(req, res) =>{
+  await sql.query("SELECT users.name, users.email, users.name as roles, users.name as projects FROM users", async(err, results)=>{
+      res.json({rows: results}).status(200)
+  }) 
+}
+
+exports.getRolesByEmail = async(req, res) =>{
+  const email = req.params.email
+  await sql.query("SELECT roles.name FROM users JOIN model_has_roles ON users.id = model_has_roles.model_id JOIN roles ON model_has_roles.role_id = roles.id WHERE users.email = ?", [email], async(err, results)=>{
+      if(!results){
+          res.json({rows: null}).status(200)
+      }else{
+          res.json({rows: results}).status(200)
+      }
+  })
+}
+
+exports.getProjectsByEmailExport = async(req, res) =>{
+  const email = req.params.email
+  await sql.query("SELECT projects.name FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id JOIN projects ON model_has_projects.project_id = projects.id WHERE users.email = ?", [email], async(err, results)=>{
+      if(!results[0]){
+          res.json({rows: null}).status(200)
+      }else{
+          res.json({rows: results}).status(200)
+      }  
   })
 }
