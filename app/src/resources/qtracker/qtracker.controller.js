@@ -1536,6 +1536,7 @@ const submitProjects = async(req, res) =>{
         
       }
     }
+    res.status(200)
 }
 
 
