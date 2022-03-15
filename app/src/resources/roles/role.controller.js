@@ -24,6 +24,7 @@ exports.findByUser = async(req, res) => {
         if (err){
           res.status(401).send("Roles not found");
         }else{
+          if(results.length > 0){
           var q = 'SELECT name FROM roles WHERE id IN (';
           if (results.length === 1){
             q += results[0].role_id + ")";
@@ -52,9 +53,12 @@ exports.findByUser = async(req, res) => {
               res.json({
                 roles: user_roles,
                 email: email
-              });
+              }).status(200);
             }
           })
+        }else{
+          res.json({roles: null, email: email}).status(200)
+        }
        
         }
       })
