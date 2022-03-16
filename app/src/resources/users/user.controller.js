@@ -499,3 +499,13 @@ exports.getProjectsByEmailExport = async(req, res) =>{
       }  
   })
 }
+
+exports.getUsersFull = async(req, res) =>{
+  await sql.query("SELECT * FROM users_view", (err, results)=>{
+    if(!results[0]){
+      res.status(200)
+    }else{
+      res.json({rows: results}).status(200)
+    }
+  })
+}

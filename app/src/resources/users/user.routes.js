@@ -52,4 +52,6 @@ module.exports = app => {
     app.get("/getRolesByEmail/:email", users.getRolesByEmail)
 
     app.get("/getProjectsByEmailExport/:email", users.getProjectsByEmailExport)
+
+    app.get("/getUsersFull", users.getUsersFull)
   };
