@@ -411,10 +411,87 @@ const changeAdmin = async(req, res) =>{
     })
 }
 
+const getTasks = async(req, res) =>{
+    sql.query("SELECT tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY task_id ASC", (err, results)=>{
+        if(!results[0]){
+            console.log("No tasks created")
+            res.status(401)
+        }else{
+            let currentTasks = {}
+            current = null
+            let tasks = []
+            for(let i = 0; i < results.length; i++){
+                if(results[i].task_id == current){
+                    currentTasks[results[i].subtask] = results[i].subtask_id
+                }else{
+                    current = results[i].task_id
+                    tasks.push(currentTasks)
+                    
+                    currentTasks = {}
+                    currentTasks[results[i].task] = results[i].task_id
+                    currentTasks[results[i].subtask] = results[i].subtask_id
+                }
+            }
+            tasks.push(currentTasks)
+            res.json({tasks: tasks}).status(200)
+        }
+    })
+}
+
+const createProject = async(req, res) =>{
+    const name = req.body.name
+    const code = req.body.code
+    const admin = req.body.admin
+    const tasks = req.body.tasks
+    sql.query("SELECT id FROM users WHERE name = ?", [admin], (err, results) =>{
+        if(!results[0]){
+            res.status(401)
+        }else{
+            const admin_id = results[0].id
+            sql.query("INSERT INTO projects(name, code, default_admin_id) VALUES(?,?,?)", [name, code, admin_id], (err, results)=>{
+                if(err){
+                    console.log(err)
+                    res.status(401)
+                }else{
+                    sql.query("SELECT id FROM projects WHERE name = ?", [name], (err, results) =>{
+                        if(!results[0]){
+                            res.status(401)
+                        }else{
+                            const project_id = results[0].id
+                            for(let i = 0; i < tasks.length; i++){
+                                sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, parseInt(tasks[i], 10), admin_id], (err, results) =>{
+                                    if(err){
+                                        console.log(err)
+                                    }
+                                })
+
+                            }
+                            res.json({success: 1}).status(200)
+                        }
+                    })
+                }
+            })
+        }
+    })
+}
+
+const getProjectsTasks = async(req, res) =>{
+    sql.query("SELECT project_has_tasks.id as id, tasks.name as task, subtasks1.name as subtask, projects.name as project, projects.code as code, project_has_tasks.created_at as date, project_has_tasks.observations, project_has_tasks.accept_reject_date, users.name as admin, project_has_tasks.status as status, project_has_tasks.realhrs as hours FROM project_has_tasks JOIN projects ON project_has_tasks.project_id = projects.id JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id JOIN tasks ON subtasks1.task_id = tasks.id JOIN users ON project_has_tasks.admin_id = users.id", (err, results) =>{
+        if(!results[0]){
+            res.status(401)
+        }else{
+            res.json({tasks: results}).status(200)
+        }
+    })
+}
+
 module.exports = {
     getProjectsByUser,
     getAdmins,
     getProjectsByEmail,
     updateProjects,
-    changeAdmin
+    changeAdmin,
+    getTasks,
+    createProject,
+    getProjectsTasks
   };

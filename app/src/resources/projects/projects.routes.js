@@ -6,4 +6,7 @@ module.exports = app => {
     app.get("/getAdmins", projects.getAdmins);
     app.post("/updateProjects", projects.updateProjects);
     app.post("/changeAdmin", projects.changeAdmin);
+    app.get("/getTasks", projects.getTasks);
+    app.post("/createProject", projects.createProject);
+    app.get("/getProjectsTasks", projects.getProjectsTasks);
   };
