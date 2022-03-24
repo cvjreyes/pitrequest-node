@@ -9,4 +9,9 @@ module.exports = app => {
     app.get("/getTasks", projects.getTasks);
     app.post("/createProject", projects.createProject);
     app.get("/getProjectsTasks", projects.getProjectsTasks);
+    app.post("/projects/updateStatus", projects.updateStatus)
+    app.post("/projects/updateObservations", projects.updateObservations)
+    app.post("/projects/updateHours", projects.updateHours)
+    app.post("/changeAdminProjectTask", projects.changeAdminProjectTask)
+    app.get("/getProjectsTreeData", projects.getProjectsTreeData)
   };

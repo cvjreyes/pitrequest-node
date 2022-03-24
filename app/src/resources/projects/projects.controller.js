@@ -476,11 +476,153 @@ const createProject = async(req, res) =>{
 }
 
 const getProjectsTasks = async(req, res) =>{
-    sql.query("SELECT project_has_tasks.id as id, tasks.name as task, subtasks1.name as subtask, projects.name as project, projects.code as code, project_has_tasks.created_at as date, project_has_tasks.observations, project_has_tasks.accept_reject_date, users.name as admin, project_has_tasks.status as status, project_has_tasks.realhrs as hours FROM project_has_tasks JOIN projects ON project_has_tasks.project_id = projects.id JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id JOIN tasks ON subtasks1.task_id = tasks.id JOIN users ON project_has_tasks.admin_id = users.id", (err, results) =>{
+    sql.query("SELECT project_has_tasks.id as id, tasks.name as task, subtasks1.name as subtask, projects.name as project, projects.code as code, project_has_tasks.created_at as date, project_has_tasks.observations, project_has_tasks.accept_reject_date, users.name as admin, project_has_tasks.status as status, project_has_tasks.realhrs as hours, subtasks1.estihrs as estimated FROM project_has_tasks JOIN projects ON project_has_tasks.project_id = projects.id JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id JOIN tasks ON subtasks1.task_id = tasks.id JOIN users ON project_has_tasks.admin_id = users.id", (err, results) =>{
         if(!results[0]){
             res.status(401)
         }else{
             res.json({tasks: results}).status(200)
+        }
+    })
+}
+
+const updateStatus = async(req, res) =>{
+    const task_id = req.body.task_id
+    const status_id = req.body.status_id
+    sql.query("UPDATE project_has_tasks SET status = ? WHERE id = ?", [status_id, task_id], (err, results) =>{
+        if(err){
+            console.log(err)
+            res.send({success: 1}).status(401)
+        }else{
+            let currentDate = new Date()
+            sql.query("UPDATE project_has_tasks SET accept_reject_date = ? WHERE ID = ?", [currentDate, task_id], (err, results) =>{
+                if(err){
+                    console.log(err)
+                    res.status(401)
+                }else{
+                    res.send({success: 1}).status(200)
+                }
+            })
+        }
+    })
+
+}
+
+const updateObservations = async(req, res) =>{
+    const task_id = req.body.task_id
+    const observation = req.body.observation
+
+    sql.query("UPDATE project_has_tasks SET observations = ? WHERE id = ?", [observation, task_id], (err, results) =>{
+        if(err){
+            console.log(err)
+            res.send({success: 1}).status(401)
+        }else{        
+            res.send({success: 1}).status(200)
+        }
+    })  
+}
+
+const updateHours = async(req, res) =>{
+    const task_id = req.body.incidence_number
+    const hours = req.body.hours
+
+    sql.query("UPDATE project_has_tasks SET realhrs = ? WHERE id = ?", [hours, task_id], (err, results) =>{
+        if(err){
+            console.log(err)
+            res.send({success: 1}).status(401)
+        }else{        
+            res.send({success: 1}).status(200)
+        }
+    })
+}
+
+const changeAdminProjectTask = async(req, res) =>{
+    const current_admin_mail = req.body.currentAdmin
+    const admin = req.body.admin
+    const task_id = req.body.task_id
+    sql.query("SELECT users.id, users.email FROM users WHERE name = ?", [admin], (err, results)=>{
+        if(!results[0]){
+            console.log("No admin")
+            res.status(200)
+        }else{
+            const admin_id = results[0].id
+            let admin_email = results[0].email
+            sql.query("SELECT `name` FROM users WHERE email = ?", [current_admin_mail], (err, results)=>{
+                if(!results[0]){
+                    console.log("No current admin mail")
+                }else{
+                    const current_admin = results[0].name
+                    sql.query("UPDATE project_has_tasks SET admin_id = ? WHERE id = ?", [admin_id, task_id], (err, results)=>{
+                        if(err){
+                            console.log(err)
+                            res.status(401)
+                        }else{
+                            if(process.env.NODE_MAILING == "1"){
+                                sql.query("SELECT tasks.name as task, subtasks1.name as subtask, projects.name as project, projects.code as code, project_has_tasks.observations,  users.name as admin, users.email as email, project_has_tasks.observations FROM project_has_tasks JOIN projects ON project_has_tasks.project_id = projects.id JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id JOIN tasks ON subtasks1.task_id = tasks.id JOIN users ON project_has_tasks.admin_id = users.id", [task_id], (err, results) =>{
+                                    if(!results[0]){
+                                        console.log("No admin mail")
+                                    }else{
+                                        const task = results[0]
+                                        if(!task.observations){
+                                            task.observations = "None"
+                                        }
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"    
+                                            }
+                                        });
+    
+                                        const html_message = "<p><b>TASK: </b>" + task.task + "</p> <p><b>SUBTASK</b> " + task.subtask + " </p> <p><b>PROJECT</b> " + task.project + " </p> <p><b>USER</b> " + task.admin + " - " + task.email + "</p> </p> <p><b>OBSERVATIONS</b> " + task.observations + "</p>"
+    
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+                                                console.log("No mail")
+                                            }else{
+                                                if(admin_email == "super@user.com"){
+                                                    admin_email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: admin_email,
+                                                        subject: "The administrator " + current_admin + " has asigned the task " +  task.task + ": " + task.subtask+ " to you",
+                                                        text: task.task + ": " + task.subtask,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
+                                        })
+    
+                                        }
+                                    
+                                    })
+                                
+                                
+                            }
+                            res.send({success:true}).status(200)
+                            
+                        }
+                    })
+                }
+            })
+        }
+    })
+}
+
+const getProjectsTreeData = async(req, res) =>{
+    sql.query("SELECT projects.id as project_id, projects.name as project, projects.code as code, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask, users.name as admin, subtasks1.estihrs as hours FROM projects LEFT JOIN project_has_tasks ON projects.id = project_has_tasks.project_id LEFT JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id LEFT JOIN tasks ON subtasks1.task_id = tasks.id LEFT JOIN users ON project_has_tasks.admin_id = users.id ORDER BY project_id, task_id, subtask1_id", (err, results) =>{
+        if(err){
+            console.log(err)
+            res.status(401)
+        }else{
+            res.json({rows: results}).status(200)
         }
     })
 }
@@ -493,5 +635,10 @@ module.exports = {
     changeAdmin,
     getTasks,
     createProject,
-    getProjectsTasks
+    getProjectsTasks,
+    updateStatus,
+    updateObservations,
+    updateHours,
+    changeAdminProjectTask,
+    getProjectsTreeData
   };
