@@ -11,6 +11,7 @@ const requestNWC = async(req, res) =>{
     const email = req.body.user
     const has_attach = req.body.has_attach
     const project = req.body.project
+    const priority = req.body.priority
     let user_id = null
 
     sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
@@ -36,7 +37,7 @@ const requestNWC = async(req, res) =>{
                         sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id
                             const admin_id = results[0].default_admin_id
-                            sql.query("INSERT INTO qtracker_not_working_component(incidence_number, project_id, spref, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code,project_id, spref, description, user_id, has_attach, admin_id], (err, results) =>{
+                            sql.query("INSERT INTO qtracker_not_working_component(incidence_number, project_id, spref, description, user_id, attach, admin_id, priority) VALUES(?,?,?,?,?,?,?,?)", [ref_code,project_id, spref, description, user_id, has_attach, admin_id, priority], (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
@@ -54,8 +55,18 @@ const requestNWC = async(req, res) =>{
                                                 pass: "1Q2w3e4r..24"    
                                             }
                                         });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
             
-                                        const html_message = "<p><b>INCIDENCE</b> NOT WORKING COMPONENT</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>SPREF</b> " + spref + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> NOT WORKING COMPONENT</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>SPREF</b> " + spref + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
             
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
@@ -110,6 +121,7 @@ const requestNVN = async(req, res) =>{
     const email = req.body.user
     const has_attach = req.body.has_attach
     const project = req.body.project
+    const priority = req.body.priority
     let user_id = null
 
     sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
@@ -135,7 +147,7 @@ const requestNVN = async(req, res) =>{
                         sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id
                             const admin_id = results[0].default_admin_id
-                            sql.query("INSERT INTO qtracker_not_view_in_navis(incidence_number, project_id, name, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, name, description, user_id, has_attach, admin_id], (err, results) =>{
+                            sql.query("INSERT INTO qtracker_not_view_in_navis(incidence_number, project_id, name, description, user_id, attach, admin_id, priority) VALUES(?,?,?,?,?,?,?,?)", [ref_code, project_id, name, description, user_id, has_attach, admin_id, priority], (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
@@ -152,8 +164,18 @@ const requestNVN = async(req, res) =>{
                                                 pass: "1Q2w3e4r..24"  
                                             }
                                         });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
         
-                                        const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN NAVIS</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN NAVIS</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
         
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
@@ -206,6 +228,7 @@ const requestNRI = async(req, res) =>{
     const email = req.body.user
     const has_attach = req.body.has_attach
     const project = req.body.project
+    const priority = req.body.priority
     let user_id = null
 
     sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
@@ -231,7 +254,7 @@ const requestNRI = async(req, res) =>{
                         sql.query("SELECT id , admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id
                             const admin_id = results[0].id
-                            sql.query("INSERT INTO qtracker_not_reporting_isometric(incidence_number, project_id, pipe, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id], (err, results) =>{
+                            sql.query("INSERT INTO qtracker_not_reporting_isometric(incidence_number, project_id, pipe, description, user_id, attach, admin_id, priority) VALUES(?,?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id, priority], (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
@@ -248,8 +271,18 @@ const requestNRI = async(req, res) =>{
                                                 pass: "1Q2w3e4r..24"  
                                             }
                                         });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
         
-                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN ISOMETRIC</p> <p><b>REFERENCE</b> " + ref_code + + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN ISOMETRIC</p> <p><b>REFERENCE</b> " + ref_code + + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
         
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
@@ -302,6 +335,7 @@ const requestNRB = async(req, res) =>{
     const email = req.body.user
     const has_attach = req.body.has_attach
     const project = req.body.project
+    const priority = req.body.priority
     let user_id = null
 
     sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
@@ -327,7 +361,7 @@ const requestNRB = async(req, res) =>{
                         sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id 
                             const admin_id = results[0].default_admin_id
-                            sql.query("INSERT INTO qtracker_not_reporting_bfile(incidence_number, project_id, pipe, description, user_id, attach, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id], (err, results) =>{
+                            sql.query("INSERT INTO qtracker_not_reporting_bfile(incidence_number, project_id, pipe, description, user_id, attach, admin_id,priority) VALUES(?,?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id, priority], (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
@@ -344,8 +378,18 @@ const requestNRB = async(req, res) =>{
                                                 pass: "1Q2w3e4r..24"  
                                             }
                                         });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
         
-                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN BFILE</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN BFILE</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>PIPE</b> " + pipe + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
         
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
@@ -394,6 +438,7 @@ const requestNRIDS = async(req, res) =>{
     const name = req.body.name
     const email = req.body.user
     const project = req.body.project
+    const priority = req.body.priority
     let user_id = null
 
     sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
@@ -419,7 +464,7 @@ const requestNRIDS = async(req, res) =>{
                         sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id
                             const admin_id = results[0].default_admin_id
-                            sql.query("INSERT INTO qtracker_not_reporting_ifc_dgn_step(incidence_number, project_id, name, user_id, admin_id) VALUES(?,?,?,?,?)", [ref_code, project_id, name, user_id, admin_id], (err, results) =>{
+                            sql.query("INSERT INTO qtracker_not_reporting_ifc_dgn_step(incidence_number, project_id, name, user_id, admin_id, priority) VALUES(?,?,?,?,?,?)", [ref_code, project_id, name, user_id, admin_id], priority, (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
@@ -436,8 +481,18 @@ const requestNRIDS = async(req, res) =>{
                                                 pass: "1Q2w3e4r..24"  
                                             }
                                         });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
         
-                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN IFC/DGN/STEP</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> NOT REPORTING IN IFC/DGN/STEP</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>NAME</b> " + name + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
         
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
@@ -488,6 +543,7 @@ const requestRR = async(req, res) =>{
     const description = req.body.description
     const email = req.body.user
     const project = req.body.project
+    const priority = req.body.priority
     let user_id = null
 
     sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
@@ -513,7 +569,7 @@ const requestRR = async(req, res) =>{
                         sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id
                             const admin_id = results[0].default_admin_id
-                            sql.query("INSERT INTO qtracker_request_report(incidence_number, project_id, items_to_report, scope, description, user_id, admin_id) VALUES(?,?,?,?,?,?,?)", [ref_code, project_id, items, scope, description, user_id, admin_id], (err, results) =>{
+                            sql.query("INSERT INTO qtracker_request_report(incidence_number, project_id, items_to_report, scope, description, user_id, admin_id, priority) VALUES(?,?,?,?,?,?,?,?)", [ref_code, project_id, items, scope, description, user_id, admin_id, priority], (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
@@ -530,8 +586,18 @@ const requestRR = async(req, res) =>{
                                                 pass: "1Q2w3e4r..24"  
                                             }
                                         });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
         
-                                        const html_message = "<p><b>INCIDENCE</b> REQUEST REPORT</p> <p><b>REFERENCE</b> " + ref_code + " <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>ITEMS TO REPORT</b> " + items + "</p>" + "</p> <p><b>SCOPE</b> " + scope + "</p>" + "</p> <p><b>DESCRIPTION</b> " + description + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> REQUEST REPORT</p> <p><b>REFERENCE</b> " + ref_code + " <p><b>PROJECT</b> " + project + " </p> <p><b>USER</b> " + email + "</p> <p><b>ITEMS TO REPORT</b> " + items + "</p>" + "</p> <p><b>SCOPE</b> " + scope + "</p>" + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
         
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
@@ -1367,6 +1433,73 @@ const updateHours = async(req, res) =>{
     }
 }
 
+const updatePriority = async(req, res) =>{
+    const incidence_number = req.body.incidence_number
+    const priority_id = req.body.priority_id
+    const type = req.body.type
+    const email = req.body.email
+    const project = req.body.project
+
+    console.log(incidence_number)
+    
+
+    if(type == "NWC"){
+        sql.query("UPDATE qtracker_not_working_component SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(type == "NVN"){
+        sql.query("UPDATE qtracker_not_view_in_navis SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(type == "NRI"){
+        sql.query("UPDATE qtracker_not_reporting_isometric SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(type == "NRB"){
+        sql.query("UPDATE qtracker_not_reporting_bfile SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(type == "NRIDS"){
+        sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                res.send({success: 1}).status(200)
+            }
+        })
+    }else if(type == "RP"){
+        sql.query("UPDATE qtracker_request_report SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
+            if(err){
+                console.log(err)
+                res.send({success: 1}).status(401)
+            }else{
+                res.send({success: 1}).status(200)
+            }
+        })
+    }
+}
+
 const statusData = (req, res) =>{
     let pending = 0
     let progress = 0
@@ -1566,6 +1699,7 @@ module.exports = {
     updateStatus,
     updateObservations,
     updateHours,
+    updatePriority,
     statusData,
     getProjects,
     submitProjects

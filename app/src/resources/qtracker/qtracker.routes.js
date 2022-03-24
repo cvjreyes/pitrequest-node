@@ -28,6 +28,7 @@ module.exports = app => {
     app.post("/qtracker/updateStatus", qtracker.updateStatus)
     app.post("/qtracker/updateObservations", qtracker.updateObservations)
     app.post("/qtracker/updateHours", qtracker.updateHours)
+    app.post("/qtracker/updatePriority", qtracker.updatePriority)
 
     app.get("/statusData", qtracker.statusData)
     app.get("/getProjects", qtracker.getProjects)

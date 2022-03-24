@@ -127,24 +127,19 @@ exports.delete = (req, res) => {
 
     sql.query("SELECT name FROM users WHERE id = ?", [req.params.userId], (err, results)=>{
       const username = results[0].name
-      sql.query("SELECT * FROM misoctrls WHERE claimed = 1 AND user = ?", [username], (err, results)=>{
-        if(!results[0]){
-          User.remove(req.params.userId, (err, data) => {
-            if (err) {
-              if (err.kind === "not_found") {
-                res.status(404).send({
-                  message: `Not found use with id ${req.params.userId}.`
-                });
-              } else {
-                res.status(500).send({
-                  message: "Could not delete user with id " + req.params.userId
-                });
-              }
-            } else res.send({ message: `User was deleted successfully!` });
-          });
-        }else{
-          res.send({error: "This user has claimed isometrics and can't be removed!"})
-        }
+      User.remove(req.params.userId, (err, data) => {
+        if (err) {
+          if (err.kind === "not_found") {
+            res.status(404).send({
+              message: `Not found use with id ${req.params.userId}.`
+            });
+          } else {
+            res.status(500).send({
+              message: "Could not delete user with id " + req.params.userId
+            });
+          }
+        } else res.send({ message: `User was deleted successfully!` });
+      
       })
     })
    
