@@ -14,4 +14,5 @@ module.exports = app => {
     app.post("/projects/updateHours", projects.updateHours)
     app.post("/changeAdminProjectTask", projects.changeAdminProjectTask)
     app.get("/getProjectsTreeData", projects.getProjectsTreeData)
+    app.get("/getAllPTS", projects.getAllPTS)
   };

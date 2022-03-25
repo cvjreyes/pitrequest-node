@@ -627,6 +627,24 @@ const getProjectsTreeData = async(req, res) =>{
     })
 }
 
+const getAllPTS = async(req, res) =>{
+    sql.query("SELECT name FROM projects", (err, results) =>{
+        if(!results[0]){
+            console.log("No hay proyectos")
+        }else{
+            const projects = results
+            sql.query("SELECT tasks.name as task, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks JOIN subtasks1 ON tasks.id = subtasks1.task_id",(err, results) =>{
+                if(!results[0]){
+                    console.log("No hay tareas")
+                }else{
+                    const tasks = results
+                    res.json({projects: projects, tasks: tasks}).status(200)
+                }
+            })
+        }
+    })
+}
+
 module.exports = {
     getProjectsByUser,
     getAdmins,
@@ -640,5 +658,6 @@ module.exports = {
     updateObservations,
     updateHours,
     changeAdminProjectTask,
-    getProjectsTreeData
+    getProjectsTreeData,
+    getAllPTS
   };
