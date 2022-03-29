@@ -645,6 +645,135 @@ const getAllPTS = async(req, res) =>{
     })
 }
 
+const submitProjectsChanges = async(req, res) =>{
+    const new_nodes = req.body.new_nodes
+    const removed_nodes = req.body.removed_nodes
+    for(let i = 0; i < new_nodes.length; i++){
+        sql.query("SELECT id, default_admin_id FROM projects WHERE projects.name = ?", [new_nodes[i].project], (err, results) =>{
+            if(results[0]){
+                let project_id = results[0].id
+                let admin_id = results[0].default_admin_id
+                sql.query("SELECT id from subtasks1 WHERE name = ?", [new_nodes[i].subtask], (err, results) =>{
+                    if(results[0]){
+                        let subtask_id = results[0].id
+                        sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, subtask_id, admin_id], (err, results) =>{
+                            if(err){
+                                res.status(401)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+    for(let i = 0; i < removed_nodes.length; i++){
+        sql.query("SELECT id, default_admin_id FROM projects WHERE projects.name = ?", [removed_nodes[i].project], (err, results) =>{
+            if(results[0]){
+                let project_id = results[0].id
+                let admin_id = results[0].default_admin_id
+                sql.query("SELECT id from subtasks1 WHERE name = ?", [removed_nodes[i].subtask], (err, results) =>{
+                    if(results[0]){
+                        let subtask_id = results[0].id
+                        sql.query("DELETE FROM project_has_tasks WHERE project_id = ? AND subtask1_id = ? AND admin_id = ?", [project_id, subtask_id, admin_id], (err, results) =>{
+                            if(err){
+                                res.status(401)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+
+    res.send({success: 1}).status(200)
+}
+
+const getSubtaskHours = async(req, res) =>{
+    const subtask = req.params.subtask
+    sql.query("SELECT estihrs FROM subtasks1 WHERE id = ?", [subtask], (err, results) =>{
+        if(!results[0]){
+            res.send({hours: null}).status(200)
+        }else{
+            res.send({hours: results[0].estihrs}).status(200)
+        }
+    })
+}
+
+const submitTasks = async(req, res) =>{
+    const tasks = req.body.rows
+    for(let i = 0; i < tasks.length; i++){
+        if(!tasks[i]["Task"] || tasks[i]["Task"] == ""){
+          sql.query("DELETE FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
+              if(err){
+                  console.log(err)
+                  res.status(401)
+              }
+          })
+        }else{
+            sql.query("SELECT * FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
+                if(!results[0]){
+                sql.query("INSERT INTO tasks(name) VALUES(?)", [tasks[i]["Task"]], (err, results)=>{
+                    if(err){
+                            console.log(err)
+                            res.send({success: false}).status(401)
+                        }
+                    })
+                }else{
+                    sql.query("UPDATE tasks SET name = ? WHERE id = ?", [tasks[i]["Task"], tasks[i]["id"]], (err, results) =>{
+                        if(err){
+                            console.log(err)
+                            res.send({success: false}).status(401)
+                        }
+                    })
+                }
+            }) 
+        }
+      }
+      res.send({success: 1}).status(200)
+}
+
+const submitSubtasks = async(req, res) =>{
+    const subtasks = req.body.rows
+
+    for(let i = 0; i < subtasks.length; i++){
+        if(!subtasks[i]["Task"] || subtasks[i]["Task"] == "" || !subtasks[i]["Subtask"] || subtasks[i]["Subtask"] == ""){
+          sql.query("DELETE FROM subtasks1 WHERE id = ?", [subtasks[i]["id"]], (err, results)=>{
+              if(err){
+                  console.log(err)
+                  res.status(401)
+              }
+          })
+        }else if (subtasks[i]["Subtask"] == "null"){
+        }else{
+            sql.query("SELECT id FROM tasks WHERE name = ?", [subtasks[i]["Task"]], (err, results)=>{
+                if(!results[0]){
+                    res.status(401)
+                }else{
+                    let task_id = results[0].id
+                    sql.query("SELECT * FROM subtasks1 WHERE id = ?", [subtasks[i]["id"]], (err, results)=>{
+                        if(!results[0]){
+                            sql.query("INSERT INTO subtasks1(name, task_id, estihrs) VALUES(?,?,?)", [subtasks[i]["Subtask"], task_id, subtasks[i]["Hours"]], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }
+                            })
+                        }else{
+                            sql.query("UPDATE subtasks1 SET name = ?, task_id = ?, estihrs = ? WHERE id = ?", [subtasks[i]["Subtask"], task_id, subtasks[i]["Hours"], subtasks[i]["id"]], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }
+                            })
+                        }
+                    })
+                }
+        })
+      }
+    }
+      res.send({success: 1}).status(200)
+}
+
 module.exports = {
     getProjectsByUser,
     getAdmins,
@@ -659,5 +788,9 @@ module.exports = {
     updateHours,
     changeAdminProjectTask,
     getProjectsTreeData,
-    getAllPTS
+    getAllPTS,
+    submitProjectsChanges,
+    getSubtaskHours,
+    submitTasks,
+    submitSubtasks
   };

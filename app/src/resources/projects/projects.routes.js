@@ -15,4 +15,8 @@ module.exports = app => {
     app.post("/changeAdminProjectTask", projects.changeAdminProjectTask)
     app.get("/getProjectsTreeData", projects.getProjectsTreeData)
     app.get("/getAllPTS", projects.getAllPTS)
+    app.post("/submitProjectsChanges", projects.submitProjectsChanges)
+    app.get("/getSubtaskHours/:subtask", projects.getSubtaskHours)
+    app.post("/submitTasks", projects.submitTasks)
+    app.post("/submitSubtasks", projects.submitSubtasks)
   };

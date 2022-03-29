@@ -1631,7 +1631,6 @@ const getProjects = async(req, res) =>{
 
 const submitProjects = async(req, res) =>{
     const rows = req.body.rows
-    console.log(rows)
     for(let i = 0; i < rows.length; i++){
       if(!rows[i]["Project"] || rows[i]["Project"] == ""){
         sql.query("DELETE FROM projects WHERE id = ?", [rows[i]["id"]], (err, results)=>{
