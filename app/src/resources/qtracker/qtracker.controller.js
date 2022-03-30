@@ -857,7 +857,7 @@ const updateStatus = async(req, res) =>{
         sql.query("UPDATE qtracker_not_working_component SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 let new_status
                 if(status_id == 0){
@@ -878,13 +878,13 @@ const updateStatus = async(req, res) =>{
                         sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
                             if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }else{
                                 let currentDate = new Date()
                                 sql.query("UPDATE qtracker_not_working_component SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                     if(err){
                                         console.log(err)
-                                        res.status(401)
+                                        res.send({success: false}).status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
                                             let observation = null
@@ -934,14 +934,14 @@ const updateStatus = async(req, res) =>{
 
                 })
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NVN"){
         sql.query("UPDATE qtracker_not_view_in_navis SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 let new_status
                 if(status_id == 0){
@@ -967,7 +967,7 @@ const updateStatus = async(req, res) =>{
                                 sql.query("UPDATE qtracker_not_view_in_navis SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                     if(err){
                                         console.log(err)
-                                        res.status(401)
+                                        res.send({success: false}).status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
                                             var transporter = nodemailer.createTransport({
@@ -1006,14 +1006,14 @@ const updateStatus = async(req, res) =>{
 
                 })
             
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NRI"){
         sql.query("UPDATE qtracker_not_reporting_isometric SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 let new_status
                 if(status_id == 0){
@@ -1033,13 +1033,13 @@ const updateStatus = async(req, res) =>{
                         sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
                             if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }else{
                                 let currentDate = new Date()
                                 sql.query("UPDATE qtracker_not_reporting_isometric SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                     if(err){
                                         console.log(err)
-                                        res.status(401)
+                                        res.send({success: false}).status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
                                             var transporter = nodemailer.createTransport({
@@ -1078,14 +1078,14 @@ const updateStatus = async(req, res) =>{
 
                 })
             
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NRB"){
         sql.query("UPDATE qtracker_not_reporting_bfile SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 let new_status
                 if(status_id == 0){
@@ -1105,13 +1105,13 @@ const updateStatus = async(req, res) =>{
                         sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
                             if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }else{
                                 let currentDate = new Date()
                                 sql.query("UPDATE qtracker_not_reporting_bfile SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                     if(err){
                                         console.log(err)
-                                        res.status(401)
+                                        res.send({success: false}).status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
                                             var transporter = nodemailer.createTransport({
@@ -1150,14 +1150,14 @@ const updateStatus = async(req, res) =>{
 
                 })
             }
-            res.send({success: 1}).status(200)
+            res.send({success: true}).status(200)
             
         })
     }else if(type == "NRIDS"){
         sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
                 let new_status
@@ -1178,13 +1178,13 @@ const updateStatus = async(req, res) =>{
                         sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
                             if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }else{
                                 let currentDate = new Date()
                                 sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                     if(err){
                                         console.log(err)
-                                        res.status(401)
+                                        res.send({success: false}).status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
                                             var transporter = nodemailer.createTransport({
@@ -1223,14 +1223,14 @@ const updateStatus = async(req, res) =>{
 
                 })
             
-            res.send({success: 1}).status(200)
+            res.send({success: true}).status(200)
             }
         })
     }else if(type == "RP"){
         sql.query("UPDATE qtracker_request_report SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 let new_status
                 if(status_id == 0){
@@ -1250,13 +1250,13 @@ const updateStatus = async(req, res) =>{
                         sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
                             if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }else{
                                 let currentDate = new Date()
                                 sql.query("UPDATE qtracker_request_report SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                     if(err){
                                         console.log(err)
-                                        res.status(401)
+                                        res.send({success: false}).status(401)
                                     }else{
                                         if(process.env.NODE_MAILING == "1"){
                                             var transporter = nodemailer.createTransport({
@@ -1295,11 +1295,11 @@ const updateStatus = async(req, res) =>{
 
                 })
             
-            res.send({success: 1}).status(200)
+            res.send({success: true}).status(200)
             }
         })
     }else{
-        res.send({success: 1}).status(200)
+        res.send({success: true}).status(200)
     }
 }
 
@@ -1311,58 +1311,58 @@ const updateObservations = async(req, res) =>{
         sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET observations = ? WHERE incidence_number = ?", [observation, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{        
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NWC")){
         sql.query("UPDATE qtracker_not_working_component SET observations = ? WHERE incidence_number = ?", [observation, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{   
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NVN")){
         sql.query("UPDATE qtracker_not_view_in_navis SET observations = ? WHERE incidence_number = ?", [observation, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NRI")){
         sql.query("UPDATE qtracker_not_reporting_isometric SET observations = ? WHERE incidence_number = ?", [observation, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NRB")){
         sql.query("UPDATE qtracker_not_reporting_bfile SET observations = ? WHERE incidence_number = ?", [observation, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("RR")){
         sql.query("UPDATE qtracker_request_report SET observations = ? WHERE incidence_number = ?", [observation, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }
@@ -1376,58 +1376,58 @@ const updateHours = async(req, res) =>{
         sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{        
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NWC")){
         sql.query("UPDATE qtracker_not_working_component SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{   
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NVN")){
         sql.query("UPDATE qtracker_not_view_in_navis SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NRI")){
         sql.query("UPDATE qtracker_not_reporting_isometric SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("NRB")){
         sql.query("UPDATE qtracker_not_reporting_bfile SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(incidence_number.includes("RR")){
         sql.query("UPDATE qtracker_request_report SET hours = ? WHERE incidence_number = ?", [hours, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
                 
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }
@@ -1447,54 +1447,54 @@ const updatePriority = async(req, res) =>{
         sql.query("UPDATE qtracker_not_working_component SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NVN"){
         sql.query("UPDATE qtracker_not_view_in_navis SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NRI"){
         sql.query("UPDATE qtracker_not_reporting_isometric SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NRB"){
         sql.query("UPDATE qtracker_not_reporting_bfile SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "NRIDS"){
         sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }else if(type == "RP"){
         sql.query("UPDATE qtracker_request_report SET priority = ? WHERE incidence_number = ?", [priority_id, incidence_number], (err, results) =>{
             if(err){
                 console.log(err)
-                res.send({success: 1}).status(401)
+                res.send({success: false}).status(401)
             }else{
-                res.send({success: 1}).status(200)
+                res.send({success: true}).status(200)
             }
         })
     }
@@ -1636,7 +1636,7 @@ const submitProjects = async(req, res) =>{
         sql.query("DELETE FROM projects WHERE id = ?", [rows[i]["id"]], (err, results)=>{
             if(err){
                 console.log(err)
-                res.status(401)
+                res.send({success:false}).status(401)
             }
         })
       }else{
@@ -1650,7 +1650,7 @@ const submitProjects = async(req, res) =>{
                       sql.query("INSERT INTO projects(name, code, default_admin_id) VALUES(?,?,?)", [rows[i]["Project"], rows[i]["Code"], admin_id], (err, results)=>{
                         if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success:false}).status(401)
                             }
                         })
                     }else{
@@ -1658,7 +1658,7 @@ const submitProjects = async(req, res) =>{
                         sql.query("UPDATE projects SET name = ?, code = ?, default_admin_id = ? WHERE id = ?", [rows[i]["Project"], rows[i]["Code"], admin_id, rows[i]["id"]], (err, results) =>{
                             if(err){
                                 console.log(err)
-                                res.status(401)
+                                res.send({success:false}).status(401)
                             }
                         })
                     }
@@ -1668,7 +1668,7 @@ const submitProjects = async(req, res) =>{
         
       }
     }
-    res.status(200)
+    res.send({success:true}).status(200)
 }
 
 

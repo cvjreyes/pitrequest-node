@@ -658,7 +658,7 @@ const submitProjectsChanges = async(req, res) =>{
                         let subtask_id = results[0].id
                         sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, subtask_id, admin_id], (err, results) =>{
                             if(err){
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }
                         })
                     }
@@ -676,7 +676,7 @@ const submitProjectsChanges = async(req, res) =>{
                         let subtask_id = results[0].id
                         sql.query("DELETE FROM project_has_tasks WHERE project_id = ? AND subtask1_id = ? AND admin_id = ?", [project_id, subtask_id, admin_id], (err, results) =>{
                             if(err){
-                                res.status(401)
+                                res.send({success: false}).status(401)
                             }
                         })
                     }
@@ -685,7 +685,7 @@ const submitProjectsChanges = async(req, res) =>{
         })
     }
 
-    res.send({success: 1}).status(200)
+    res.send({success: true}).status(200)
 }
 
 const getSubtaskHours = async(req, res) =>{
@@ -706,7 +706,7 @@ const submitTasks = async(req, res) =>{
           sql.query("DELETE FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
               if(err){
                   console.log(err)
-                  res.status(401)
+                  res.send({success: false}).status(401)
               }
           })
         }else{
@@ -740,14 +740,14 @@ const submitSubtasks = async(req, res) =>{
           sql.query("DELETE FROM subtasks1 WHERE id = ?", [subtasks[i]["id"]], (err, results)=>{
               if(err){
                   console.log(err)
-                  res.status(401)
+                  res.send({success: false}).status(401)
               }
           })
         }else if (subtasks[i]["Subtask"] == "null"){
         }else{
             sql.query("SELECT id FROM tasks WHERE name = ?", [subtasks[i]["Task"]], (err, results)=>{
                 if(!results[0]){
-                    res.status(401)
+                    res.send({success: false}).status(401)
                 }else{
                     let task_id = results[0].id
                     sql.query("SELECT * FROM subtasks1 WHERE id = ?", [subtasks[i]["id"]], (err, results)=>{
@@ -755,14 +755,14 @@ const submitSubtasks = async(req, res) =>{
                             sql.query("INSERT INTO subtasks1(name, task_id, estihrs) VALUES(?,?,?)", [subtasks[i]["Subtask"], task_id, subtasks[i]["Hours"]], (err, results)=>{
                                 if(err){
                                     console.log(err)
-                                    res.status(401)
+                                    res.send({success: false}).status(401)
                                 }
                             })
                         }else{
                             sql.query("UPDATE subtasks1 SET name = ?, task_id = ?, estihrs = ? WHERE id = ?", [subtasks[i]["Subtask"], task_id, subtasks[i]["Hours"], subtasks[i]["id"]], (err, results) =>{
                                 if(err){
                                     console.log(err)
-                                    res.status(401)
+                                    res.send({success: false}).status(401)
                                 }
                             })
                         }
