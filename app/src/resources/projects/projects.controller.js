@@ -22,7 +22,7 @@ const getProjectsByUser = async(req, res) =>{
 
 const getProjectsByEmail = async(req, res) =>{
     const email = req.params.email
-    sql.query("SELECT projects.* FROM model_has_projects JOIN projects ON model_has_projects.project_id = projects.id JOIN users ON model_has_projects.user_id = users.id WHERE users.email = ?", [email], (err, results)=>{
+    sql.query("SELECT projects.* FROM model_has_projects JOIN projects ON model_has_projects.project_id = projects.id JOIN users ON model_has_projects.user_id = users.id WHERE users.email = ? ORDER BY projects.name ASC", [email], (err, results)=>{
         if(err){
             console.log(err)
             res.status(401)
@@ -443,12 +443,13 @@ const createProject = async(req, res) =>{
     const code = req.body.code
     const admin = req.body.admin
     const tasks = req.body.tasks
+    const hours = req.body.hours
     sql.query("SELECT id FROM users WHERE name = ?", [admin], (err, results) =>{
         if(!results[0]){
             res.status(401)
         }else{
             const admin_id = results[0].id
-            sql.query("INSERT INTO projects(name, code, default_admin_id) VALUES(?,?,?)", [name, code, admin_id], (err, results)=>{
+            sql.query("INSERT INTO projects(name, code, default_admin_id, sup_estihrs) VALUES(?,?,?,?)", [name, code, admin_id, hours], (err, results)=>{
                 if(err){
                     console.log(err)
                     res.status(401)
@@ -458,13 +459,15 @@ const createProject = async(req, res) =>{
                             res.status(401)
                         }else{
                             const project_id = results[0].id
-                            for(let i = 0; i < tasks.length; i++){
-                                sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, parseInt(tasks[i], 10), admin_id], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                    }
-                                })
+                            if(tasks){
+                                for(let i = 0; i < tasks.length; i++){
+                                    sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, parseInt(tasks[i], 10), admin_id], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                        }
+                                    })
 
+                                }
                             }
                             res.json({success: 1}).status(200)
                         }
@@ -491,15 +494,15 @@ const updateStatus = async(req, res) =>{
     sql.query("UPDATE project_has_tasks SET status = ? WHERE id = ?", [status_id, task_id], (err, results) =>{
         if(err){
             console.log(err)
-            res.send({success: 1}).status(401)
+            res.send({success: false}).status(401)
         }else{
             let currentDate = new Date()
             sql.query("UPDATE project_has_tasks SET accept_reject_date = ? WHERE ID = ?", [currentDate, task_id], (err, results) =>{
                 if(err){
                     console.log(err)
-                    res.status(401)
+                    res.send({success: false}).status(401)
                 }else{
-                    res.send({success: 1}).status(200)
+                    res.send({success: true}).status(200)
                 }
             })
         }
@@ -514,9 +517,9 @@ const updateObservations = async(req, res) =>{
     sql.query("UPDATE project_has_tasks SET observations = ? WHERE id = ?", [observation, task_id], (err, results) =>{
         if(err){
             console.log(err)
-            res.send({success: 1}).status(401)
+            res.send({success: false}).status(401)
         }else{        
-            res.send({success: 1}).status(200)
+            res.send({success: true}).status(200)
         }
     })  
 }
@@ -528,9 +531,9 @@ const updateHours = async(req, res) =>{
     sql.query("UPDATE project_has_tasks SET realhrs = ? WHERE id = ?", [hours, task_id], (err, results) =>{
         if(err){
             console.log(err)
-            res.send({success: 1}).status(401)
+            res.send({success: false}).status(401)
         }else{        
-            res.send({success: 1}).status(200)
+            res.send({success: true}).status(200)
         }
     })
 }
@@ -628,7 +631,7 @@ const getProjectsTreeData = async(req, res) =>{
 }
 
 const getAllPTS = async(req, res) =>{
-    sql.query("SELECT name FROM projects", (err, results) =>{
+    sql.query("SELECT name, sup_estihrs FROM projects", (err, results) =>{
         if(!results[0]){
             console.log("No hay proyectos")
         }else{
@@ -774,6 +777,63 @@ const submitSubtasks = async(req, res) =>{
       res.send({success: 1}).status(200)
 }
 
+const isAdmin = async(req, res) =>{
+    sql.query("SELECT * FROM model_has_roles JOIN users ON model_has_roles.model_id = users.id WHERE model_has_roles.role_id = 14 AND users.email = ?", [req.params.email], (err, results) =>{
+        if(!results[0]){
+            res.send({isAdmin: false}).status(200)
+        }else{
+            res.send({isAdmin: true}).status(200)
+        }
+    })
+}
+
+const getProjectsWithHours = async(req, res) =>{
+    sql.query("SELECT * FROM projects", (err, results) =>{
+        if(!results[0]){
+            res.send({success: false}).status(401)
+        }else{
+            res.json({projects: results}).status(200)
+        }
+    })
+}
+
+const submitProjectsHours = async(req, res) =>{
+    const projects = req.body.rows
+    for(let i = 0; i < projects.length; i++){
+        if(!projects[i]["Project"] || projects[i]["Project"] == ""){
+          
+        }else{
+            sql.query("SELECT id FROM projects WHERE name = ?", [projects[i]["Project"]], (err, results)=>{
+                if(!results[0]){
+                    res.send({success: false}).status(401)
+                }else{
+                    sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
+                        if(results[0]){
+                            sql.query("UPDATE projects SET name = ?, sup_estihrs = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], projects[i]["id"]], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }
+                            })
+                        }
+                    })
+                }
+        })
+      }
+    }
+      res.send({success: 1}).status(200)
+}
+
+const getProjectsTotalHours = async(req, res) =>{
+    sql.query("SELECT t.name as name , t.sup_estihrs as estimated, SUM(t.hours) as hours FROM (SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_view_in_navis LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_isometric LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_working_component LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_request_report LEFT JOIN projects ON qtracker_request_report.project_id = projects.id) t GROUP BY t.name", (err, results) =>{
+        if(!results[0]){
+            res.send({success: false}).status(401)
+        }else{
+            res.json({projects: results}).status(200)
+        }
+    })
+}
+
 module.exports = {
     getProjectsByUser,
     getAdmins,
@@ -792,5 +852,9 @@ module.exports = {
     submitProjectsChanges,
     getSubtaskHours,
     submitTasks,
-    submitSubtasks
+    submitSubtasks,
+    isAdmin,
+    getProjectsWithHours,
+    submitProjectsHours,
+    getProjectsTotalHours
   };
