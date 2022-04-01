@@ -23,4 +23,10 @@ module.exports = app => {
     app.get("/getProjectsWithHours", projects.getProjectsWithHours)
     app.post("/submitProjectsHours", projects.submitProjectsHours)
     app.get("/getProjectsTotalHours", projects.getProjectsTotalHours)
+    app.get("/getOffersWithHours", projects.getOffersWithHours)
+    app.get("/getOffersTreeData", projects.getOffersTreeData)
+    app.get("/getAllOTS", projects.getAllOTS)
+    app.post("/submitOffersChanges", projects.submitOffersChanges)
+    app.post("/submitOffersHours", projects.submitOffersHours)
+    app.post("/createOffer", projects.createOffer)
   };

@@ -412,10 +412,10 @@ const changeAdmin = async(req, res) =>{
 }
 
 const getTasks = async(req, res) =>{
-    sql.query("SELECT tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY task_id ASC", (err, results)=>{
+    sql.query("SELECT tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY tasks.name ASC", (err, results)=>{
         if(!results[0]){
             console.log("No tasks created")
-            res.status(401)
+            res.json({tasks: null}).status(401)
         }else{
             let currentTasks = {}
             current = null
@@ -634,17 +634,18 @@ const getAllPTS = async(req, res) =>{
     sql.query("SELECT name, sup_estihrs FROM projects", (err, results) =>{
         if(!results[0]){
             console.log("No hay proyectos")
-        }else{
-            const projects = results
-            sql.query("SELECT tasks.name as task, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks JOIN subtasks1 ON tasks.id = subtasks1.task_id",(err, results) =>{
-                if(!results[0]){
-                    console.log("No hay tareas")
-                }else{
-                    const tasks = results
-                    res.json({projects: projects, tasks: tasks}).status(200)
-                }
-            })
         }
+        const projects = results
+        sql.query("SELECT tasks.name as task, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id",(err, results) =>{
+            if(!results[0]){
+                console.log("No hay tareas")
+                res.json({projects: projects, tasks: null}).status(200)
+            }else{
+                const tasks = results
+                res.json({projects: projects, tasks: tasks}).status(200)
+            }
+        })
+        
     })
 }
 
@@ -788,7 +789,7 @@ const isAdmin = async(req, res) =>{
 }
 
 const getProjectsWithHours = async(req, res) =>{
-    sql.query("SELECT * FROM projects", (err, results) =>{
+    sql.query("SELECT projects.*, users.name as admin FROM projects LEFT JOIN users ON projects.default_admin_id = users.id", (err, results) =>{
         if(!results[0]){
             res.send({success: false}).status(401)
         }else{
@@ -807,16 +808,24 @@ const submitProjectsHours = async(req, res) =>{
                 if(!results[0]){
                     res.send({success: false}).status(401)
                 }else{
-                    sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
-                        if(results[0]){
-                            sql.query("UPDATE projects SET name = ?, sup_estihrs = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], projects[i]["id"]], (err, results) =>{
-                                if(err){
-                                    console.log(err)
-                                    res.send({success: false}).status(401)
+                    sql.query("SELECT id FROM users WHERE name = ?", [projects[i]["Admin"]], (err, results)=>{
+                        if(!results[0]){
+                            res.send({success: false}).status(401)
+                        }else{
+                            let admin_id = results[0].id
+                            sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
+                                if(results[0]){
+                                    sql.query("UPDATE projects SET name = ?, sup_estihrs = ?, default_admin_id = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], admin_id, projects[i]["id"]], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }
+                                    })
                                 }
                             })
                         }
                     })
+                    
                 }
         })
       }
@@ -825,7 +834,7 @@ const submitProjectsHours = async(req, res) =>{
 }
 
 const getProjectsTotalHours = async(req, res) =>{
-    sql.query("SELECT t.name as name , t.sup_estihrs as estimated, SUM(t.hours) as hours FROM (SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_view_in_navis LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_isometric LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_working_component LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_request_report LEFT JOIN projects ON qtracker_request_report.project_id = projects.id) t GROUP BY t.name", (err, results) =>{
+    sql.query("SELECT t.name as name , t.sup_estihrs as estimated, SUM(t.hours) as hours FROM (SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_ifc_dgn_step RIGHT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_view_in_navis RIGHT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_isometric RIGHT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_working_component RIGHT JOIN projects ON qtracker_not_working_component.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_request_report RIGHT JOIN projects ON qtracker_request_report.project_id = projects.id) t GROUP BY t.name", (err, results) =>{
         if(!results[0]){
             res.send({success: false}).status(401)
         }else{
@@ -833,6 +842,150 @@ const getProjectsTotalHours = async(req, res) =>{
         }
     })
 }
+
+const getOffersWithHours = async(req, res) =>{
+    sql.query("SELECT offers.* FROM offers", (err, results) =>{
+        if(!results[0]){
+            res.send({success: false}).status(401)
+        }else{
+            res.json({offers: results}).status(200)
+        }
+    })
+}
+
+const getOffersTreeData = async(req, res) =>{
+    sql.query("SELECT offers.id as offer_id, offers.name as offer, offers.code as code, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask, subtasks1.estihrs as hours FROM offers LEFT JOIN offer_has_tasks ON offers.id = offer_has_tasks.offer_id LEFT JOIN subtasks1 ON offer_has_tasks.subtask1_id = subtasks1.id LEFT JOIN tasks ON subtasks1.task_id = tasks.id ORDER BY offer_id, task_id, subtask1_id", (err, results) =>{
+        if(err){
+            console.log(err)
+            res.status(401)
+        }else{
+            res.json({rows: results}).status(200)
+        }
+    })
+}
+
+const getAllOTS = async(req, res) =>{
+    sql.query("SELECT name, sup_estihrs FROM offers", (err, results) =>{
+        if(!results[0]){
+            console.log("No hay ofertas")
+        }
+        const offers = results
+        sql.query("SELECT tasks.name as task, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id",(err, results) =>{
+            if(!results[0]){
+                console.log("No hay tareas")
+                res.json({offers: offers, tasks: null}).status(200)
+            }else{
+                const tasks = results
+                res.json({offers: offers, tasks: tasks}).status(200)
+            }
+        })
+        
+    })
+}
+
+const submitOffersChanges = async(req, res) =>{
+    const new_nodes = req.body.new_nodes
+    const removed_nodes = req.body.removed_nodes
+    for(let i = 0; i < new_nodes.length; i++){
+        sql.query("SELECT id FROM offers WHERE offers.name = ?", [new_nodes[i].offer], (err, results) =>{
+            if(results[0]){
+                let offer_id = results[0].id
+                sql.query("SELECT id from subtasks1 WHERE name = ?", [new_nodes[i].subtask], (err, results) =>{
+                    if(results[0]){
+                        let subtask_id = results[0].id
+                        sql.query("INSERT INTO offer_has_tasks(offer_id, subtask1_id) VALUES(?,?)", [offer_id, subtask_id], (err, results) =>{
+                            if(err){
+                                res.send({success: false}).status(401)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+    for(let i = 0; i < removed_nodes.length; i++){
+        sql.query("SELECT id FROM offers WHERE offers.name = ?", [removed_nodes[i].offer], (err, results) =>{
+            if(results[0]){
+                let offer_id = results[0].id
+                sql.query("SELECT id from subtasks1 WHERE name = ?", [removed_nodes[i].subtask], (err, results) =>{
+                    if(results[0]){
+                        let subtask_id = results[0].id
+                        sql.query("DELETE FROM offer_has_tasks WHERE offer_id = ? AND subtask1_id = ?", [project_id, subtask_id], (err, results) =>{
+                            if(err){
+                                res.send({success: false}).status(401)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+
+    res.send({success: true}).status(200)
+}
+
+const submitOffersHours = async(req, res) =>{
+    const offers = req.body.rows
+    for(let i = 0; i < offers.length; i++){
+        if(!offers[i]["Offer"] || offers[i]["Offer"] == ""){
+          
+        }else{
+            sql.query("SELECT id FROM offers WHERE name = ?", [offers[i]["Offer"]], (err, results)=>{
+                if(!results[0]){
+                    res.send({success: false}).status(401)
+                }else{
+                    sql.query("SELECT * FROM offers WHERE id = ?", [offers[i]["id"]], (err, results)=>{
+                        if(results[0]){
+                            sql.query("UPDATE offers SET name = ?, sup_estihrs = ? WHERE id = ?", [offers[i]["Offer"],  offers[i]["Hours"],  offers[i]["id"]], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }
+                            })
+                        }
+                    })
+                                      
+                }
+        })
+      }
+    }
+      res.send({success: 1}).status(200)
+}
+
+const createOffer = async(req, res) =>{
+    const name = req.body.name
+    const code = req.body.code
+    const tasks = req.body.tasks
+    const hours = req.body.hours
+
+    sql.query("INSERT INTO offers(name, code, sup_estihrs) VALUES(?,?,?)", [name, code, hours], (err, results)=>{
+        if(err){
+            console.log(err)
+            res.status(401)
+        }else{
+            sql.query("SELECT id FROM offers WHERE name = ?", [name], (err, results) =>{
+                if(!results[0]){
+                    res.status(401)
+                }else{
+                    const offer_id = results[0].id
+                    if(tasks){
+                        for(let i = 0; i < tasks.length; i++){
+                            sql.query("INSERT INTO offer_has_tasks(offer_id, subtask1_id) VALUES(?,?)", [offer_id, parseInt(tasks[i], 10)], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                }
+                            })
+
+                        }
+                    }
+                    res.json({success: 1}).status(200)
+                }
+            })
+        }
+    })
+        
+}
+
 
 module.exports = {
     getProjectsByUser,
@@ -856,5 +1009,11 @@ module.exports = {
     isAdmin,
     getProjectsWithHours,
     submitProjectsHours,
-    getProjectsTotalHours
+    getProjectsTotalHours,
+    getOffersWithHours,
+    getOffersTreeData,
+    getAllOTS,
+    submitOffersChanges,
+    submitOffersHours,
+    createOffer
   };

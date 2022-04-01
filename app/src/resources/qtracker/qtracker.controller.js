@@ -79,6 +79,9 @@ const requestNWC = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
+                                                if(results[0].email === "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
                                                     transporter.sendMail({
                                                         from: '3DTracker@technipenergies.com',
                                                         to: results[0].email,
@@ -195,6 +198,9 @@ const requestNVN = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
+                                                if(results[0].email === "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
                                                     transporter.sendMail({
                                                         from: '3DTracker@technipenergies.com',
                                                         to: results[0].email,
@@ -309,6 +315,9 @@ const requestNRI = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
+                                                if(results[0].email === "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
                                                     transporter.sendMail({
                                                         from: '3DTracker@technipenergies.com',
                                                         to: results[0].email,
@@ -423,6 +432,9 @@ const requestNRB = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
+                                                if(results[0].email === "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
                                                     transporter.sendMail({
                                                         from: '3DTracker@technipenergies.com',
                                                         to: results[0].email,
@@ -533,6 +545,9 @@ const requestNRIDS = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
+                                                if(results[0].email === "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
                                                     transporter.sendMail({
                                                         from: '3DTracker@technipenergies.com',
                                                         to: results[0].email,
@@ -645,6 +660,9 @@ const requestRR = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
+                                                if(results[0].email === "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
                                                     transporter.sendMail({
                                                         from: '3DTracker@technipenergies.com',
                                                         to: results[0].email,
