@@ -910,7 +910,7 @@ const submitOffersChanges = async(req, res) =>{
                 sql.query("SELECT id from subtasks1 WHERE name = ?", [removed_nodes[i].subtask], (err, results) =>{
                     if(results[0]){
                         let subtask_id = results[0].id
-                        sql.query("DELETE FROM offer_has_tasks WHERE offer_id = ? AND subtask1_id = ?", [project_id, subtask_id], (err, results) =>{
+                        sql.query("DELETE FROM offer_has_tasks WHERE offer_id = ? AND subtask1_id = ?", [offer_id, subtask_id], (err, results) =>{
                             if(err){
                                 res.send({success: false}).status(401)
                             }
