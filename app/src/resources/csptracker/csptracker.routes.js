@@ -40,6 +40,7 @@ let routes = (app) => {
   router.post("/deleteSP", controller.deleteSP);
   router.post("/excludeSP", controller.excludeSP);
   router.get("/spStatusData", controller.spStatusData)
+  
   app.use(router);
 };
 

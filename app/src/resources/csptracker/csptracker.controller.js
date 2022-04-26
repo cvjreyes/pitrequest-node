@@ -258,10 +258,13 @@ const exitEditCSP = async(req, res) =>{
 
 const getDrawing = async(req, res) =>{
     const fileName = req.params.fileName
+    
     let path = './app/storage/csptracker/drawings/' + fileName;
     if (fs.existsSync(path)) {
         var file = fs.createReadStream(path);
         file.pipe(res);
+    }else{
+        console.log(fileName)
     }
     
 }
@@ -1263,6 +1266,7 @@ const spStatusData = (req, res) =>{
     })
 }
 
+
 module.exports = {
     csptracker,
     readye3d,
@@ -1298,5 +1302,5 @@ module.exports = {
     submitPids,
     deleteSP,
     excludeSP,
-    spStatusData
+    spStatusData,
   };
