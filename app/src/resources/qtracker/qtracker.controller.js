@@ -79,7 +79,7 @@ const requestNWC = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
-                                                if(results[0].email === "super@user.com"){
+                                                if(results[0].email == "super@user.com"){
                                                     results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
                                                     transporter.sendMail({
@@ -198,7 +198,7 @@ const requestNVN = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
-                                                if(results[0].email === "super@user.com"){
+                                                if(results[0].email == "super@user.com"){
                                                     results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
                                                     transporter.sendMail({
@@ -315,7 +315,7 @@ const requestNRI = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
-                                                if(results[0].email === "super@user.com"){
+                                                if(results[0].email == "super@user.com"){
                                                     results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
                                                     transporter.sendMail({
@@ -432,7 +432,7 @@ const requestNRB = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
-                                                if(results[0].email === "super@user.com"){
+                                                if(results[0].email == "super@user.com"){
                                                     results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
                                                     transporter.sendMail({
@@ -545,7 +545,7 @@ const requestNRIDS = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
-                                                if(results[0].email === "super@user.com"){
+                                                if(results[0].email == "super@user.com"){
                                                     results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
                                                     transporter.sendMail({
@@ -660,7 +660,7 @@ const requestRR = async(req, res) =>{
                                             if(!results[0]){
             
                                             }else{
-                                                if(results[0].email === "super@user.com"){
+                                                if(results[0].email == "super@user.com"){
                                                     results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
                                                     transporter.sendMail({
@@ -962,7 +962,7 @@ const updateStatus = async(req, res) =>{
                                                         }
                                                     });
         
-                                                    if(reciever_email = "super@user.com"){
+                                                    if(reciever_email == "super@user.com"){
                                                         reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                     }
                         
@@ -1040,7 +1040,7 @@ const updateStatus = async(req, res) =>{
                                                 }
                                             });
 
-                                            if(reciever_email = "super@user.com"){
+                                            if(reciever_email == "super@user.com"){
                                                 reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                             }
                 
@@ -1112,7 +1112,7 @@ const updateStatus = async(req, res) =>{
                                                 }
                                             });
 
-                                            if(reciever_email = "super@user.com"){
+                                            if(reciever_email == "super@user.com"){
                                                 reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                             }
                 
@@ -1184,7 +1184,7 @@ const updateStatus = async(req, res) =>{
                                                 }
                                             });
 
-                                            if(reciever_email = "super@user.com"){
+                                            if(reciever_email == "super@user.com"){
                                                 reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                             }
                 
@@ -1257,7 +1257,7 @@ const updateStatus = async(req, res) =>{
                                                 }
                                             });
 
-                                            if(reciever_email = "super@user.com"){
+                                            if(reciever_email == "super@user.com"){
                                                 reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                             }
                 
@@ -1329,7 +1329,7 @@ const updateStatus = async(req, res) =>{
                                                 }
                                             });
 
-                                            if(reciever_email = "super@user.com"){
+                                            if(reciever_email == "super@user.com"){
                                                 reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                             }
                 
