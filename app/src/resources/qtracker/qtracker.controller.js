@@ -4,6 +4,7 @@ const nodemailer = require("nodemailer");
 const path = require('path');
 const fs = require("fs");
 const { resourceLimits } = require("worker_threads");
+const { send } = require("express/lib/response");
 
 const requestNWC = async(req, res) =>{
     const spref = req.body.spref
@@ -274,7 +275,7 @@ const requestNRI = async(req, res) =>{
                         user_id = results[0].id
                         sql.query("SELECT id , default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
                             const project_id = results[0].id
-                            const admin_id = results[0].id
+                            const admin_id = results[0].default_admin_id
                             sql.query("INSERT INTO qtracker_not_reporting_isometric(incidence_number, project_id, pipe, description, user_id, attach, admin_id, priority, carta) VALUES(?,?,?,?,?,?,?,?,?)", [ref_code, project_id, pipe, description, user_id, has_attach, admin_id, priority, carta], (err, results) =>{
                                 if(err){
                                     console.log(err)
@@ -704,6 +705,122 @@ const requestRR = async(req, res) =>{
     
 }
 
+const requestIS = async(req, res) =>{
+    const sending = req.body.sending
+    const description = req.body.description
+    const email = req.body.user
+    const project = req.body.project
+    const priority = req.body.priority
+    const carta = req.body.carta
+    let user_id = null
+
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
+        if(!results[0]){
+            res.status(401)
+        }else{
+            let ref_code = results[0].code + "-IS000001"
+            sql.query("SELECT id FROM qtracker_isometric_sending ORDER BY id DESC LIMIT 1", (err, results) =>{
+                if(!results){
+                    results = []
+                    results[0] = null
+                }
+                if(!results[0]){
+        
+                }else{
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                }
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                    if(!results[0]){
+                        res.status(401)
+                    }else{
+                        user_id = results[0].id
+                        sql.query("SELECT id , default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                            const project_id = results[0].id
+                            const admin_id = results[0].default_admin_id
+                            sql.query("INSERT INTO qtracker_isometric_sending(incidence_number, project_id, sending, description, user_id, admin_id, priority, carta) VALUES(?,?,?,?,?,?,?,?)", [ref_code, project_id, sending, description, user_id, admin_id, priority, carta], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
+                                    
+                                    if(process.env.NODE_MAILING == "1"){
+                                        // create reusable transporter object using the default SMTP transport
+                                        var transporter = nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                                user: "3DTracker@technipenergies.com",
+                                                pass: "1Q2w3e4r..24"  
+                                            }
+                                        });
+
+                                        let priorityText = ""
+
+                                        if(priority == 0){
+                                            priorityText = "Low"
+                                        }else if(priority == 1){
+                                            priorityText = "Medium"
+                                        }else{
+                                            priorityText = "High"
+                                        }
+
+                                        let project_name = project
+
+                                        if(carta){
+                                            project_name + " - " + carta
+                                        }
+        
+                                        const html_message = "<p><b>INCIDENCE</b> ISOMETRIC SENDING</p> <p><b>REFERENCE</b> " + ref_code + + " </p> <p><b>PROJECT</b> " + project_name + " </p> <p><b>USER</b> " + email + "</p> <p><b>SENDING</b> " + sending + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
+        
+                                        sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                            if(!results[0]){
+            
+                                            }else{
+                                                if(results[0].email == "super@user.com"){
+                                                    results[0].email = "alex.dominguez-ortega@external.technipenergies.com"
+                                                }
+                                                    transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: results[0].email,
+                                                        subject: project + ' ' + ref_code,
+                                                        text: ref_code,
+                                                        
+                                                        html: html_message
+                                                    }, (err, info) => {
+                                                        console.log(info.envelope);
+                                                        console.log(info.messageId);
+                                                    });
+                                                
+                                            }
+                                        })
+                                        transporter.sendMail({
+                                            from: '3DTracker@technipenergies.com',
+                                            to: email,
+                                            subject: project + ' ' + ref_code,
+                                            text: ref_code,
+                                            
+                                            html: html_message
+                                        }, (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                        });
+                                    }
+                                   
+                                    res.send({filename: ref_code}).status(200)
+                                }
+                            })
+                        })
+                    }
+                })
+               
+            })
+        }
+    })
+
+    
+}
+
 const uploadAttach = async(req, res) =>{
     try{   
         await qtrackerMiddleware.uploadAttach(req, res);
@@ -898,6 +1015,24 @@ const getRPByProjects = async(req, res) =>{
             }
             sql.query("SELECT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                 res.json({rows: results})
+            })
+        }
+    })
+}
+
+const getISByProjects = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
+        if(!results[0]){
+            console.log("This user has no projects assigned.")
+            res.status(200)
+        }else{
+            let projects_ids = []
+            for(let i = 0; i < results.length; i++){
+                projects_ids.push(results[i].project_id)
+            }
+            sql.query("SELECT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                res.json({rows: results}).status(200)
             })
         }
     })
@@ -1740,6 +1875,7 @@ module.exports = {
     requestNRB,
     requestNRIDS,
     requestRR,
+    requestIS,
     uploadAttach,
     existsAttach,
     getAttach,
@@ -1755,11 +1891,13 @@ module.exports = {
     getNRBByProjects,
     getNRIDSByProjects,
     getRPByProjects,
+    getISByProjects,
     updateStatus,
     updateObservations,
     updateHours,
     updatePriority,
     statusData,
     getProjects,
-    submitProjects
+    submitProjects,
+    
   };

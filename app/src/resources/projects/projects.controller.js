@@ -412,7 +412,7 @@ const changeAdmin = async(req, res) =>{
 }
 
 const getTasks = async(req, res) =>{
-    sql.query("SELECT tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY tasks.name ASC", (err, results)=>{
+    sql.query("SELECT softwares.id as software_id, softwares.name as software, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM softwares LEFT JOIN tasks ON softwares.id = tasks.software_id LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY tasks.name ASC", (err, results)=>{
         if(!results[0]){
             console.log("No tasks created")
             res.json({tasks: null}).status(401)
@@ -423,6 +423,7 @@ const getTasks = async(req, res) =>{
             for(let i = 0; i < results.length; i++){
                 if(results[i].task_id == current){
                     currentTasks[results[i].subtask] = results[i].subtask_id
+                    currentTasks["software"] = results[i].software
                 }else{
                     current = results[i].task_id
                     tasks.push(currentTasks)
@@ -430,10 +431,71 @@ const getTasks = async(req, res) =>{
                     currentTasks = {}
                     currentTasks[results[i].task] = results[i].task_id
                     currentTasks[results[i].subtask] = results[i].subtask_id
+                    currentTasks["software"] = results[i].software
                 }
             }
             tasks.push(currentTasks)
             res.json({tasks: tasks}).status(200)
+        }
+    })
+}
+
+const getTasksPopUp = async(req, res) =>{
+    sql.query("SELECT softwares.id as software_id, softwares.name as software, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM softwares LEFT JOIN tasks ON softwares.id = tasks.software_id LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY software ASC", (err, results)=>{
+        if(!results[0]){
+            console.log("No tasks created")
+            res.json({tasks: null}).status(401)
+        }else{
+            let softwares = {}
+            let software = []
+            currentSoftware = results[0].software
+            let task = {}
+            let subtask = {}
+            for(let i = 0; i < results.length; i++){
+                if(currentSoftware == results[i].software){
+                    task = {}
+                    if(results[i].task_id){
+                        task[results[i].task_id] = results[i].task
+                        software.push(task)
+                    }
+                    subtask = {}
+                    if(results[i].subtask_id){
+                        subtask[results[i].subtask_id] = results[i].subtask
+                        software.push(subtask)
+                    }
+                }else{
+                    if(software.length > 0){
+                        softwares[currentSoftware] = software
+                    }
+                    currentSoftware = results[i].software
+                    software = []
+                    task = {}
+                    if(results[i].task_id){
+                        task[results[i].task_id] = results[i].task
+                        software.push(task)
+                    }
+                    subtask = {}
+                    if(results[i].subtask_id){
+                        subtask[results[i].subtask_id] = results[i].subtask
+                        software.push(subtask)
+                    }
+                }
+            }
+            if(software.length > 0){
+                softwares[currentSoftware] = software
+            }
+            console.log(softwares)
+            res.json({softwares: softwares}).status(200)
+        }
+    })
+}
+
+const getSoftwares = async(req, res) =>{
+    sql.query("SELECT name FROM softwares", (err, results)=>{
+        if(!results[0]){
+            res.json({softwares: null}).status(401)
+        }else{
+            res.json({softwares: results}).status(200)
         }
     })
 }
@@ -620,7 +682,7 @@ const changeAdminProjectTask = async(req, res) =>{
 }
 
 const getProjectsTreeData = async(req, res) =>{
-    sql.query("SELECT projects.id as project_id, projects.name as project, projects.code as code, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask, users.name as admin, subtasks1.estihrs as hours FROM projects LEFT JOIN project_has_tasks ON projects.id = project_has_tasks.project_id LEFT JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id LEFT JOIN tasks ON subtasks1.task_id = tasks.id LEFT JOIN users ON project_has_tasks.admin_id = users.id ORDER BY project_id, task_id, subtask1_id", (err, results) =>{
+    sql.query("SELECT projects.id as project_id, projects.name as project, projects.code as code, softwares.id as software_id, softwares.name as software, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask, users.name as admin, subtasks1.estihrs as hours FROM projects LEFT JOIN project_has_tasks ON projects.id = project_has_tasks.project_id LEFT JOIN subtasks1 ON project_has_tasks.subtask1_id = subtasks1.id LEFT JOIN tasks ON subtasks1.task_id = tasks.id LEFT JOIN users ON project_has_tasks.admin_id = users.id LEFT JOIN softwares ON software_id = softwares.id ORDER BY project_id, task_id, subtask1_id", (err, results) =>{
         if(err){
             console.log(err)
             res.status(401)
@@ -706,7 +768,7 @@ const getSubtaskHours = async(req, res) =>{
 const submitTasks = async(req, res) =>{
     const tasks = req.body.rows
     for(let i = 0; i < tasks.length; i++){
-        if(!tasks[i]["Task"] || tasks[i]["Task"] == ""){
+        if(!tasks[i]["Task"] || tasks[i]["Task"] == "" || !tasks[i]["Software"] || tasks[i]["Software"] == ""){
           sql.query("DELETE FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
               if(err){
                   console.log(err)
@@ -714,23 +776,32 @@ const submitTasks = async(req, res) =>{
               }
           })
         }else{
-            sql.query("SELECT * FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
+            sql.query("SELECT id FROM softwares WHERE name = ?", [tasks[i]["Software"]], (err, results)=>{
                 if(!results[0]){
-                sql.query("INSERT INTO tasks(name) VALUES(?)", [tasks[i]["Task"]], (err, results)=>{
-                    if(err){
-                            console.log(err)
-                            res.send({success: false}).status(401)
-                        }
-                    })
+                    console.log(err)
+                    res.send({success: false}).status(401)
                 }else{
-                    sql.query("UPDATE tasks SET name = ? WHERE id = ?", [tasks[i]["Task"], tasks[i]["id"]], (err, results) =>{
-                        if(err){
-                            console.log(err)
-                            res.send({success: false}).status(401)
+                    let software_id = results[0].id
+                    sql.query("SELECT * FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
+                        if(!results[0]){
+                        sql.query("INSERT INTO tasks(name, software_id) VALUES(?,?)", [tasks[i]["Task"], software_id], (err, results)=>{
+                            if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }
+                            })
+                        }else{
+                            sql.query("UPDATE tasks SET name = ?, software_id = ? WHERE id = ?", [tasks[i]["Task"], software_id, tasks[i]["id"]], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }
+                            })
                         }
                     })
                 }
-            }) 
+            })
+             
         }
       }
       res.send({success: 1}).status(200)
@@ -994,6 +1065,8 @@ module.exports = {
     updateProjects,
     changeAdmin,
     getTasks,
+    getTasksPopUp,
+    getSoftwares,
     createProject,
     getProjectsTasks,
     updateStatus,

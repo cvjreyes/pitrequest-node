@@ -7,6 +7,8 @@ module.exports = app => {
     app.post("/updateProjects", projects.updateProjects);
     app.post("/changeAdmin", projects.changeAdmin);
     app.get("/getTasks", projects.getTasks);
+    app.get("/getTasksPopUp", projects.getTasksPopUp);
+    app.get("/getSoftwares", projects.getSoftwares);
     app.post("/createProject", projects.createProject);
     app.get("/getProjectsTasks", projects.getProjectsTasks);
     app.post("/projects/updateStatus", projects.updateStatus)

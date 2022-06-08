@@ -7,6 +7,7 @@ module.exports = app => {
     app.post("/qtracker/requestNRB", qtracker.requestNRB)
     app.post("/qtracker/requestNRIDS", qtracker.requestNRIDS)
     app.post("/qtracker/requestRR", qtracker.requestRR)
+    app.post("/qtracker/requestIS", qtracker.requestIS)
     app.post("/qtracker/uploadAttach", qtracker.uploadAttach)
     app.get("/qtracker/existsAttach/:incidence_number", qtracker.existsAttach)
     app.get("/qtracker/getAttach/:fileName", qtracker.getAttach)
@@ -24,6 +25,7 @@ module.exports = app => {
     app.get("/qtracker/getNRBByProjects/:email", qtracker.getNRBByProjects)
     app.get("/qtracker/getNRIDSByProjects/:email", qtracker.getNRIDSByProjects)
     app.get("/qtracker/getRPByProjects/:email", qtracker.getRPByProjects)
+    app.get("/qtracker/getISByProjects/:email", qtracker.getISByProjects)
 
     app.post("/qtracker/updateStatus", qtracker.updateStatus)
     app.post("/qtracker/updateObservations", qtracker.updateObservations)
