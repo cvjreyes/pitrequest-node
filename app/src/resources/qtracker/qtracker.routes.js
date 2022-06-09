@@ -18,6 +18,7 @@ module.exports = app => {
     app.get("/qtracker/getNRB", qtracker.getNRB)
     app.get("/qtracker/getNRIDS", qtracker.getNRIDS)
     app.get("/qtracker/getRP", qtracker.getRP)
+    app.get("/qtracker/getIS", qtracker.getIS)
 
     app.get("/qtracker/getNWCByProjects/:email", qtracker.getNWCByProjects)
     app.get("/qtracker/getNVNByProjects/:email", qtracker.getNVNByProjects)

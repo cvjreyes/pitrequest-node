@@ -484,7 +484,6 @@ const getTasksPopUp = async(req, res) =>{
             if(software.length > 0){
                 softwares[currentSoftware] = software
             }
-            console.log(softwares)
             res.json({softwares: softwares}).status(200)
         }
     })
@@ -698,7 +697,7 @@ const getAllPTS = async(req, res) =>{
             console.log("No hay proyectos")
         }
         const projects = results
-        sql.query("SELECT tasks.name as task, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id",(err, results) =>{
+        sql.query("SELECT tasks.name as task, softwares.name as software, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id LEFT JOIN softwares ON software_id = softwares.id",(err, results) =>{
             if(!results[0]){
                 console.log("No hay tareas")
                 res.json({projects: projects, tasks: null}).status(200)

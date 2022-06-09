@@ -911,6 +911,13 @@ const getRP = async(req, res) =>{
     })
 }
 
+const getIS = async(req, res) =>{
+    sql.query("SELECT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id", (err, results) =>{
+        res.json({rows: results}).status(200)
+    })
+}
+
+
 const getNWCByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
@@ -1885,6 +1892,7 @@ module.exports = {
     getNRB,
     getNRIDS,
     getRP,
+    getIS,
     getNWCByProjects,
     getNVNByProjects,
     getNRIByProjects,
