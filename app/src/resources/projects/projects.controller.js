@@ -924,7 +924,7 @@ const getOffersWithHours = async(req, res) =>{
 }
 
 const getOffersTreeData = async(req, res) =>{
-    sql.query("SELECT offers.id as offer_id, offers.name as offer, offers.code as code, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask, subtasks1.estihrs as hours FROM offers LEFT JOIN offer_has_tasks ON offers.id = offer_has_tasks.offer_id LEFT JOIN subtasks1 ON offer_has_tasks.subtask1_id = subtasks1.id LEFT JOIN tasks ON subtasks1.task_id = tasks.id ORDER BY offer_id, task_id, subtask1_id", (err, results) =>{
+    sql.query("SELECT offers.id as offer_id, offers.name as offer, offers.code as code, softwares.id as software_id, softwares.name as software, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask, subtasks1.estihrs as hours FROM offers LEFT JOIN offer_has_tasks ON offers.id = offer_has_tasks.offer_id LEFT JOIN subtasks1 ON offer_has_tasks.subtask1_id = subtasks1.id LEFT JOIN tasks ON subtasks1.task_id = tasks.id LEFT JOIN softwares ON software_id = softwares.id ORDER BY offer_id, task_id, subtask1_id", (err, results) =>{
         if(err){
             console.log(err)
             res.status(401)
@@ -940,7 +940,7 @@ const getAllOTS = async(req, res) =>{
             console.log("No hay ofertas")
         }
         const offers = results
-        sql.query("SELECT tasks.name as task, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id",(err, results) =>{
+        sql.query("SELECT tasks.name as task, softwares.name as software, subtasks1.name as subtask, subtasks1.estihrs as hours FROM tasks LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id LEFT JOIN softwares ON software_id = softwares.id",(err, results) =>{
             if(!results[0]){
                 console.log("No hay tareas")
                 res.json({offers: offers, tasks: null}).status(200)
