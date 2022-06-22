@@ -149,7 +149,7 @@ const requestNVN = async(req, res) =>{
                 if(!results[0]){
         
                 }else{
-                    ref_code = "NVN000000".substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
                 }
                 sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
                     if(!results[0]){
