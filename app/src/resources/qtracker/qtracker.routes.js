@@ -36,4 +36,7 @@ module.exports = app => {
     app.get("/statusData", qtracker.statusData)
     app.get("/getProjects", qtracker.getProjects)
     app.post("/submitProjects", qtracker.submitProjects)
+
+    app.get("/downloadGuideES", qtracker.downloadGuideES)
+    app.get("/downloadGuideEN", qtracker.downloadGuideEN)
   };

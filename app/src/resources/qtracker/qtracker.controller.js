@@ -1873,7 +1873,13 @@ const submitProjects = async(req, res) =>{
     res.send({success:true}).status(200)
 }
 
+const downloadGuideES = async(req, res) =>{
+    res.download("./app/storage/videos/PITRequest_gui_ES.mp4")
+}
 
+const downloadGuideEN = async(req, res) =>{
+    res.download("./app/storage/videos/PITRequest_gui_EN.mp4")
+}
 
 module.exports = {
     requestNWC,
@@ -1907,5 +1913,6 @@ module.exports = {
     statusData,
     getProjects,
     submitProjects,
-    
+    downloadGuideES,
+    downloadGuideEN
   };
