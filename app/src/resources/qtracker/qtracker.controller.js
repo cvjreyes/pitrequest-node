@@ -771,7 +771,7 @@ const requestIS = async(req, res) =>{
                                             project_name + " - " + carta
                                         }
         
-                                        const html_message = "<p><b>INCIDENCE</b> ISOMETRIC SENDING</p> <p><b>REFERENCE</b> " + ref_code + + " </p> <p><b>PROJECT</b> " + project_name + " </p> <p><b>USER</b> " + email + "</p> <p><b>SENDING</b> " + sending + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
+                                        const html_message = "<p><b>INCIDENCE</b> ISOMETRIC SENDING</p> <p><b>REFERENCE</b> " + ref_code + " </p> <p><b>PROJECT</b> " + project_name + " </p> <p><b>USER</b> " + email + "</p> <p><b>SENDING</b> " + sending + "</p> <p><b>DESCRIPTION</b> " + description + "</p> <p><b>PRIORITY</b> " + priorityText + "</p>"
         
                                         sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                             if(!results[0]){
