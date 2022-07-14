@@ -404,6 +404,59 @@ const changeAdmin = async(req, res) =>{
                                 res.send({success:true}).status(200)
                             }
                         })
+                    }else if(type == "IS"){
+                        sql.query("UPDATE qtracker_isometric_sending SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_isometric_sending.*, projects.name as project, users.name as user, users.email FROM qtracker_isometric_sending JOIN projects ON qtracker_isometric_sending.project_id = projects.id JOIN users ON qtracker_isometric_sending.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> REQUEST REPORT</p> <p><b>REFERENCE</b> " + incidence_number + " <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>ITEMS TO REPORT</b> " + incidence.items + "</p>" + "</p> <p><b>SCOPE</b> " + incidence.scope + "</p>" + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
                     }
                 }
             })
