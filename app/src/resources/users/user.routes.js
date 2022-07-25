@@ -54,4 +54,6 @@ module.exports = app => {
     app.get("/getProjectsByEmailExport/:email", users.getProjectsByEmailExport)
 
     app.get("/getUsersFull", users.getUsersFull)
+
+    app.post("/submitUserRequest", users.submitUserRequest)
   };

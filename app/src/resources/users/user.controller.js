@@ -1,6 +1,7 @@
 const User = require("./user.model.js");
 const sql = require("../../db.js");
 const md5 = require("md5");
+const nodemailer = require("nodemailer");
 
 // Create and Save a new user
 exports.create = (req, res) => {
@@ -503,4 +504,78 @@ exports.getUsersFull = async(req, res) =>{
       res.json({rows: results}).status(200)
     }
   })
+}
+
+exports.submitUserRequest = async(req, res) =>{
+  const email = req.body.email
+  const project = req.body.project
+  const otherproject = req.body.otherproject
+
+  var transporter = nodemailer.createTransport({
+    host: "es001vs0064",
+    port: 25,
+    secure: false,
+    auth: {
+        user: "3DTracker@technipenergies.com",
+        pass: "1Q2w3e4r..24"    
+    }
+  });
+
+  let html_message
+
+  if(otherproject){
+    sql.query("SELECT DISTINCT users.email FROM  users JOIN projects ON default_admin_id = users.id", (err, results)=>{
+      if(!results[0]){
+        console.log("No admins")
+        res.status(200)
+      }else{
+        let admins = results
+        html_message = "<p><b>USER </b>" + email + " </p> <p>The access was requested to a project that doesn't exist yet: " + otherproject + "</p>"
+        for(let i = 0; i < admins.length; i++){
+          if(admins[i].email == "super@user.com"){
+            admins[i].email = "alex.dominguez-ortega@external.technipenergies.com"
+          }
+          transporter.sendMail({
+            from: '3DTracker@technipenergies.com',
+            to: admins[i].email,
+            subject: "The user " + email + " has requested access to PITRequest",
+            text: otherproject,
+            
+            html: html_message
+        }, (err, info) => {
+            console.log(info.envelope);
+            console.log(info.messageId);
+        });
+        }
+        res.send({success: true}).status(200)
+      }
+    })
+  }else{
+    sql.query("SELECT email FROM users JOIN projects ON default_admin_id = users.id WHERE projects.name = ?", [project], (err, results) =>{
+      if(!results[0]){
+        console.log("No admin")
+        res.status(200)
+      }else{
+        let admin = results[0].email
+
+        if(admin == "super@user.com"){
+          admin = "alex.dominguez-ortega@external.technipenergies.com"
+        }
+
+        html_message = "<p><b>USER </b>" + email + " </p><p><b>PROJECT</b>: " + project + "</p>"
+        transporter.sendMail({
+          from: '3DTracker@technipenergies.com',
+          to: admin,
+          subject: "The user " + email + " has requested access to PITRequest",
+          text: project,
+          html: html_message
+      }, (err, info) => {
+          console.log(info.envelope);
+          console.log(info.messageId);
+      });
+      res.send({success: true}).status(200)
+      }
+    })
+  }
+
 }
