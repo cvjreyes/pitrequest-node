@@ -547,7 +547,15 @@ exports.submitUserRequest = async(req, res) =>{
             console.log(info.messageId);
         });
         }
-        res.send({success: true}).status(200)
+
+        sql.query("INSERT INTO access_requests(project_name, email, status) VALUES(?,?,?)", [otherproject, email, 3], (err, results) =>{
+          if(err){
+            console.log(err)
+            res.send({success: false}).status(401)
+          }else{
+            res.send({success: true}).status(200)
+          }
+        })
       }
     })
   }else{
@@ -569,13 +577,169 @@ exports.submitUserRequest = async(req, res) =>{
           subject: "The user " + email + " has requested access to PITRequest",
           text: project,
           html: html_message
-      }, (err, info) => {
-          console.log(info.envelope);
-          console.log(info.messageId);
-      });
-      res.send({success: true}).status(200)
+        }, (err, info) => {
+            console.log(info.envelope);
+            console.log(info.messageId);
+        });
+
+        sql.query("SELECT id FROM projects WHERE projects.name = ?", [project], (err, results) =>{
+          if(!results[0]){
+            console.log("No project")
+            res.status(401)
+          }else{
+            const project_id = results[0].id
+            sql.query("INSERT INTO access_requests(project_id, email) VALUES(?,?)", [project_id, email], (err, results) =>{
+              if(err){
+                console.log(err)
+                res.send({success: false}).status(401)
+              }else{
+                res.send({success: true}).status(200)
+              }
+            })
+          }
+        })
       }
     })
   }
 
+}
+
+exports.getAccessRequests = async(req, res) =>{
+  const admin = req.params.user
+  sql.query("SELECT access_requests.id, access_requests.project_name, projects.name, projects.code, access_requests.email, access_requests.status FROM access_requests LEFT JOIN projects ON project_id = projects.id LEFT JOIN users ON default_admin_id = users.id WHERE users.email = ? OR access_requests.project_id IS NULL", [admin], (err, results) =>{
+    if(!results[0]){
+      console.log("No pending access requests!")
+      res.send({requests: []}).status(200)
+    }else{
+      res.send({requests: results}).status(200)
+    }
+  })
+}
+
+exports.rejectAccessRequest = async(req, res) =>{
+  const id = req.body.id
+  const user = req.body.user
+  sql.query("UPDATE access_requests SET status = 2 WHERE id = ?", [id], (err, results) =>{
+    if(err){
+      console.log(err)
+      res.status(401)
+    }else{
+      sql.query("SELECT projects.name, email FROM access_requests LEFT JOIN projects ON access_requests.project_id = projects.id WHERE access_requests.id = ?", [id], (err, results) =>{
+        const email = results[0].email
+        const project = results[0].name
+        var transporter = nodemailer.createTransport({
+          host: "es001vs0064",
+          port: 25,
+          secure: false,
+          auth: {
+              user: "3DTracker@technipenergies.com",
+              pass: "1Q2w3e4r..24"    
+          }
+        });
+        html_message = "<p>The administrator " + user + " denied your access to " + project + ".</p>"
+        transporter.sendMail({
+          from: '3DTracker@technipenergies.com',
+          to: "alex.dominguez-ortega@technipenergies.com",
+          subject: "Access to PITRequest denied",
+          text: project,
+          html: html_message
+        }, (err, info) => {
+            console.log(info.envelope);
+            console.log(info.messageId);
+        });
+
+        res.send({success: true}).status(200)
+      
+      })
+      
+    }
+  })
+}
+
+exports.acceptAccessRequest = async(req, res) =>{
+  const id = req.body.id
+  const user = req.body.user
+  sql.query("UPDATE access_requests SET status = 1 WHERE id = ?", [id], (err, results) =>{
+    if(err){
+      console.log(err)
+      res.status(401)
+    }else{
+      sql.query("SELECT email, project_id FROM access_requests WHERE id = ?", [id], (err, results)=>{
+        if(!results[0]){
+          console.log("Request not found")
+          res.status(401)
+        }else{
+          const user_email = results[0].email
+
+          let username = user_email.replace("-", " ")
+          username = username.replace(".", " ")
+          let splitStr = username.toLowerCase().split(' ');
+          for(let i = 0; i < splitStr.length; i++){
+              splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1)
+          }
+          username = splitStr.join(' ')
+
+          const project_id = results[0].project_id
+          sql.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [username, user_email, md5("123456")], async (err, result)=>{
+            if(err){
+                console.log(err)
+                res.status(401).send({error: "Error"});
+            }else{
+              sql.query('SELECT id FROM users WHERE email = ?', [user_email], async(err, result) =>{
+                  if (err){
+                      console.log(err);
+                      res.status(401).send({error: "Error"});
+                  }else{
+                      const user_id = result[0].id;
+                      sql.query('INSERT INTO model_has_roles (role_id, model_id, model_type) VALUES (?,?,?)', [1, user_id, "App/User"], async(err, result) =>{
+                          if (err) {
+                              console.log(err);
+                              res.status(401).send({error: "Error"});
+                          }else{
+                            sql.query('INSERT INTO model_has_projects (project_id, user_id) VALUES (?,?)', [project_id, user_id], async(err, result) =>{
+                              if (err) {
+                                  console.log(err);
+                                  res.status(401).send({error: "Error"});
+                              }else{
+                                sql.query("SELECT projects.name, email FROM access_requests LEFT JOIN projects ON access_requests.project_id = projects.id WHERE access_requests.id = ?", [id], (err, results) =>{
+                                  const email = results[0].email
+                                  const project = results[0].name
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                        user: "3DTracker@technipenergies.com",
+                                        pass: "1Q2w3e4r..24"    
+                                    }
+                                  });
+                                  html_message = "<p>The administrator " + user + " accepted your access to " + project + ".</p>"
+                                  transporter.sendMail({
+                                    from: '3DTracker@technipenergies.com',
+                                    to: "alex.dominguez-ortega@technipenergies.com",
+                                    subject: "Access to PITRequest accepted",
+                                    text: project,
+                                    html: html_message
+                                  }, (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                  });
+                          
+                                  res.send({success: true}).status(200)
+                                
+                                })
+                              }
+                          })
+                          }
+                      })
+                  }
+              })
+            }
+              
+          })
+        }
+      })
+      
+    }
+  })
 }

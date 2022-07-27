@@ -56,4 +56,10 @@ module.exports = app => {
     app.get("/getUsersFull", users.getUsersFull)
 
     app.post("/submitUserRequest", users.submitUserRequest)
+
+    app.get("/getAccessRequests/:user", users.getAccessRequests)
+
+    app.post("/acceptAccessRequest", users.acceptAccessRequest)
+
+    app.post("/rejectAccessRequest", users.rejectAccessRequest)
   };
