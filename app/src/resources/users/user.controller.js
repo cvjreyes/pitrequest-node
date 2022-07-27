@@ -678,7 +678,8 @@ exports.acceptAccessRequest = async(req, res) =>{
               splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1)
           }
           username = splitStr.join(' ')
-
+          username = username.substring(0, username.indexOf("@"))
+          
           const project_id = results[0].project_id
           sql.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [username, user_email, md5("123456")], async (err, result)=>{
             if(err){
