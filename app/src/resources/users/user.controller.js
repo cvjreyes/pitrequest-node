@@ -606,7 +606,7 @@ exports.submitUserRequest = async(req, res) =>{
 
 exports.getAccessRequests = async(req, res) =>{
   const admin = req.params.user
-  sql.query("SELECT access_requests.id, access_requests.project_name, projects.name, projects.code, access_requests.email, access_requests.status FROM access_requests LEFT JOIN projects ON project_id = projects.id LEFT JOIN users ON default_admin_id = users.id WHERE users.email = ? OR access_requests.project_id IS NULL", [admin], (err, results) =>{
+  sql.query("SELECT access_requests.id, access_requests.project_name, projects.name, projects.code, access_requests.email, access_requests.status FROM access_requests LEFT JOIN projects ON project_id = projects.id LEFT JOIN users ON default_admin_id = users.id WHERE users.email = ? OR access_requests.project_id IS NULL ORDER BY access_requests.id DESC", [admin], (err, results) =>{
     if(!results[0]){
       console.log("No pending access requests!")
       res.send({requests: []}).status(200)
