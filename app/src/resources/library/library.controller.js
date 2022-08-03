@@ -5,12 +5,24 @@ const fs = require("fs");
 
 //Retorna toda la información de la librería
 const getLibrary = async(req, res) =>{
-    sql.query("SELECT library_families.id, type as component_type, brand as component_brand, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id", (err, results) =>{
+    sql.query("SELECT library_families.id, project_type, type as component_type, brand as component_brand, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id JOIN library_component_has_project_type ON library_families.id = library_component_has_project_type.family_id JOIN library_project_types ON library_component_has_project_type.project_type_id = library_project_types.id", (err, results) =>{
         if(!results[0]){
             console.log("No library")
             res.status(401)
         }else{
             res.json({library: results}).status(200)
+        }
+    })
+}
+
+//Retorna los tipos de proyecto
+const getProjectTypes = async(req, res) =>{
+    sql.query("SELECT * FROM library_project_types", (err, results) =>{
+        if(!results[0]){
+            console.log("No project types")
+            res.status(401)
+        }else{
+            res.json({project_types: results}).status(200)
         }
     })
 }
@@ -157,6 +169,20 @@ const uploadComponentRFA = async(req, res) =>{
     }
 }
 
+//Crea un nuevo tipo de proyecto
+const addProjectType = async(req, res) =>{
+    const projectType = req.body.projectType
+
+    sql.query("INSERT INTO library_project_types(project_type) VALUES(?)", [projectType], (err, results) =>{
+        if(err){
+            console.log(err)
+            res.status(401)
+        }else{
+            res.send({success: true}).status(200)
+        }
+    })
+}
+
 //Crea un nuevo tipo de componente
 const addComponentType = async(req, res) =>{
     const componentType = req.body.componentType
@@ -201,6 +227,7 @@ const addComponentDiscipline = async(req, res) =>{
 
 module.exports = {
     getLibrary,
+    getProjectTypes,
     getComponentTypes,
     getComponentBrands,
     getComponentCodes,
@@ -211,6 +238,7 @@ module.exports = {
     createComponent,
     uploadComponentImage,
     uploadComponentRFA,
+    addProjectType,
     addComponentType,
     addComponentBrand,
     addComponentDiscipline
