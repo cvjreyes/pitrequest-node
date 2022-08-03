@@ -12,6 +12,7 @@ let routes = (app) => {
   router.get("/getComponentNames", library.getComponentNames);
   router.get("/getComponentImage/:componentName", library.getComponentImage);
   router.get("/getComponentRFA/:componentName", library.getComponentRFA)
+  
 
   //Setters
   router.post("/createComponent", library.createComponent)
