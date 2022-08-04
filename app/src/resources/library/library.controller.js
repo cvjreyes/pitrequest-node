@@ -127,19 +127,36 @@ const createComponent = async(req, res) =>{
     const componentTypeId = req.body.componentTypeId
     const componentBrandId = req.body.componentBrandId
     const componentDisciplineId = req.body.componentDisciplineId
-    const componentCode = "abc"
     const componentName = req.body.componentName
     const componentDescription = req.body.componentDescription
 
-    sql.query("INSERT INTO library_families(component_type_id, component_brand_id, component_discipline_id, component_code, component_name, component_description) VALUES(?,?,?,?,?,?)", [componentTypeId, componentBrandId, componentDisciplineId, componentCode, componentName, componentDescription], (err, results) =>{
-        if(err){
-            console.log(err)
-            res.status(401)
+    let componentCode = ""
+
+    await sql.query("SELECT code FROM library_component_disciplines WHERE id = ?", [componentDisciplineId], async(err, results) =>{
+        if(!results[0]){
+            console.log("Discipline does not exist")
         }else{
-            res.send({success: true}).status(200)
+            componentCode = results[0].code
+            await sql.query("SELECT library_families.id FROM library_families JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id WHERE library_component_disciplines.id = ? ORDER BY library_families.id DESC LIMIT 1", [componentDisciplineId], async(err, results) =>{
+                if(!results[0]){
+                    componentCode += "0001"
+                }else{
+                    let newID = (results[0].id + 1).toString()
+                    let base = "0000"
+                    componentCode += base.substring(0, 4-newID.length) + newID
+                }
+                await sql.query("INSERT INTO library_families(component_type_id, component_brand_id, component_discipline_id, component_code, component_name, component_description) VALUES(?,?,?,?,?,?)", [componentTypeId, componentBrandId, componentDisciplineId, componentCode, componentName, componentDescription], async(err, results) =>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }else{
+                        res.send({success: true}).status(200)
+                    }
+                })
+            })
         }
     })
-    
+
 }
 
 //Upload de una imagen de un componente (desde el front llamalo file)
@@ -211,8 +228,9 @@ const addComponentBrand = async(req, res) =>{
 //Crea una nueva disciplina
 const addComponentDiscipline = async(req, res) =>{
     const componentDiscipline = req.body.componentDiscipline
+    const componentCode = req.body.componentCode
 
-    sql.query("INSERT INTO library_component_disciplines(discipline) VALUES(?)", [componentDiscipline], (err, results) =>{
+    sql.query("INSERT INTO library_component_disciplines(discipline, code) VALUES(?,?)", [componentDiscipline, componentCode], (err, results) =>{
         if(err){
             console.log(err)
             res.status(401)
