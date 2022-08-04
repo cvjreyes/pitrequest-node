@@ -10,6 +10,14 @@ const getLibrary = async(req, res) =>{
             console.log("No library")
             res.status(401)
         }else{
+            for(let i = 0; i < results.length; i++){
+                let path = './app/storage/library/images/' + results[i].component_name +".png";
+                if (fs.existsSync(path)) {
+                    results[i].image_path = "/images/" + results[i].component_name +".png"
+                }else{
+                    results[i].image_path = "/images/" + results[i].component_name +".jpg"
+                }
+            }
             res.json({library: results}).status(200)
         }
     })
@@ -92,12 +100,10 @@ const getComponentImage = async(req, res) =>{
     const imageName = req.params.componentName
     let path = './app/storage/library/images/' + imageName +".png";
     if (fs.existsSync(path)) {
-        var file = fs.createReadStream(path);
         res.send({path: "/images/" + imageName +".png"}).status(200)
     }else{
         res.send({path: "/images/" + imageName +".jpg"}).status(200)
     }
-    
 }
 
 //Retorna el archivo RFA de un componente en funcion del nombre
