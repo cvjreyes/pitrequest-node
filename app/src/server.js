@@ -8,6 +8,9 @@ app.use(cors());
 // parse requests of content-type: application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(express.static('app/storage/library')); 
+app.use('/images', express.static('images'));
+
 app.get("/api", (req, res) => {
     res.json({ message: "Welcome to the isotracker api." });
   });

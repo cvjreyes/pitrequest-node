@@ -90,21 +90,12 @@ const getComponentNames = async(req, res) =>{
 //Retorna la imagen de un componente en funcion del nombre
 const getComponentImage = async(req, res) =>{
     const imageName = req.params.componentName
-        
     let path = './app/storage/library/images/' + imageName +".png";
     if (fs.existsSync(path)) {
         var file = fs.createReadStream(path);
-        file.pipe(res);
+        res.send({path: "/images/" + imageName +".png"}).status(200)
     }else{
-        path = './app/storage/library/images/' + imageName +".jpg";
-        if (fs.existsSync(path)) {
-            var file = fs.createReadStream(path);
-            file.pipe(res);
-            res.status(200)
-        }else{
-            console.log("Component file does not exist")
-            res.status(401)
-        }
+        res.send({path: "/images/" + imageName +".jpg"}).status(200)
     }
     
 }
