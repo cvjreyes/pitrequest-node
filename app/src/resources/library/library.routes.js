@@ -12,6 +12,7 @@ let routes = (app) => {
   router.get("/getComponentCodes", library.getComponentCodes);
   router.get("/getComponentDisciplines", library.getComponentDisciplines);
   router.get("/getComponentNames", library.getComponentNames);
+  router.get("/getGroupProjects", library.getGroupProjects);
   router.get("/getComponentImage/:componentName", library.getComponentImage);
   router.get("/getComponentRFA/:componentName", library.getComponentRFA)
 
