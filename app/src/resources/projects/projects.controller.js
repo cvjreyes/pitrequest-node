@@ -22,7 +22,7 @@ const getProjectsByUser = async(req, res) =>{
 
 const getProjectsByEmail = async(req, res) =>{
     const email = req.params.email
-    sql.query("SELECT projects.* FROM model_has_projects JOIN projects ON model_has_projects.project_id = projects.id JOIN users ON model_has_projects.user_id = users.id WHERE users.email = ? ORDER BY projects.name ASC", [email], (err, results)=>{
+    sql.query("SELECT projects.* FROM model_has_projects JOIN projects ON model_has_projects.project_id = projects.id JOIN users ON model_has_projects.user_id = users.id WHERE users.email = ? AND active = 1 ORDER BY projects.name ASC", [email], (err, results)=>{
         if(err){
             console.log(err)
             res.status(401)
@@ -923,6 +923,7 @@ const getProjectsWithHours = async(req, res) =>{
 
 const submitProjectsHours = async(req, res) =>{
     const projects = req.body.rows
+    console.log(projects)
     for(let i = 0; i < projects.length; i++){
         if(!projects[i]["Project"] || projects[i]["Project"] == ""){
           
@@ -938,7 +939,7 @@ const submitProjectsHours = async(req, res) =>{
                             let admin_id = results[0].id
                             sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
                                 if(results[0]){
-                                    sql.query("UPDATE projects SET name = ?, sup_estihrs = ?, default_admin_id = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], admin_id, projects[i]["id"]], (err, results) =>{
+                                    sql.query("UPDATE projects SET name = ?, sup_estihrs = ?, default_admin_id = ?, active = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], admin_id, Number(projects[i]["Active"]), projects[i]["id"]], (err, results) =>{
                                         if(err){
                                             console.log(err)
                                             res.send({success: false}).status(401)
@@ -1110,6 +1111,16 @@ const createOffer = async(req, res) =>{
 }
 
 
+const getAllProjects = async(req, res) =>{
+    sql.query("SELECT name FROM projects", (err, results) =>{
+        if(!results[0]){
+            res.status(401)
+        }else{
+            res.json({projects: results}).status(200)
+        }
+    })
+}
+
 module.exports = {
     getProjectsByUser,
     getAdmins,
@@ -1140,5 +1151,6 @@ module.exports = {
     getAllOTS,
     submitOffersChanges,
     submitOffersHours,
-    createOffer
+    createOffer,
+    getAllProjects
   };
