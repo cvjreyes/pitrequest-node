@@ -5,7 +5,7 @@ const fs = require("fs");
 
 //Retorna toda la información de la librería
 const getLibrary = async(req, res) =>{
-    sql.query("SELECT library_families.id, project_type, type as component_type, brand as component_brand, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id JOIN library_component_has_project_type ON library_families.id = library_component_has_project_type.family_id JOIN library_project_types ON library_component_has_project_type.project_type_id = library_project_types.id ", (err, results) =>{
+    sql.query("SELECT library_families.id, project_type, type as component_type, brand as component_brand, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id JOIN library_component_has_project_type ON library_families.id = library_component_has_project_type.family_id JOIN library_project_types ON library_component_has_project_type.project_type_id = library_project_types.id GROUP BY library_families.id ORDER BY library_families.id", (err, results) =>{
         if(!results[0]){
             console.log("No library")
             res.status(401)
@@ -97,7 +97,7 @@ const getComponentNames = async(req, res) =>{
 
 //Retorna los grupos de projecto con el mismo family id
 const getGroupProjects = async(req, res) =>{
-    sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ', ') AS grupo_proyectos FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
+    sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ', ') AS grupo_projectos FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
         if(!results[0]){
             console.log("No group of projects")
             res.status(401)
