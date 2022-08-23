@@ -10,6 +10,7 @@ const getLibrary = async(req, res) =>{
             console.log("No library")
             res.status(401)
         }else{
+            console.log(results)
             for(let i = 0; i < results.length; i++){
                 let path = './app/storage/library/images/' + results[i].component_name +".png";
                 if (fs.existsSync(path)) {
