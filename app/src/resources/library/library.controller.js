@@ -97,7 +97,7 @@ const getComponentNames = async(req, res) =>{
 
 //Retorna los grupos de projecto con el mismo family id
 const getGroupProjects = async(req, res) =>{
-    sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ', ') AS grupo_projectos FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
+    sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ',') AS grupo_projectos FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
         if(!results[0]){
             console.log("No group of projects")
             res.status(401)
