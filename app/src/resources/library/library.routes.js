@@ -18,6 +18,8 @@ let routes = (app) => {
 
   //Setters
   router.post("/createComponent", library.createComponent)
+  router.post("/updateComponent", library.updateComponent)
+  router.post("/deleteComponent", library.deleteComponent)
   router.post("/uploadComponentImage", library.uploadComponentImage)
   router.post("/uploadComponentRFA", library.uploadComponentRFA)
   router.post("/addProjectType", library.addProjectType)
