@@ -10,7 +10,6 @@ const getLibrary = async(req, res) =>{
             console.log("No library")
             res.status(401)
         }else{
-            console.log(results)
             for(let i = 0; i < results.length; i++){
                 let path = './app/storage/library/images/' + results[i].component_name +".png";
                 if (fs.existsSync(path)) {
@@ -142,7 +141,7 @@ const createComponent = async(req, res) =>{
     const componentDisciplineId = req.body.componentDisciplineId
     const componentName = req.body.componentName
     const componentDescription = req.body.componentDescription
-
+    const project_types = req.body.project_types
     let componentCode = ""
 
     await sql.query("SELECT code FROM library_component_disciplines WHERE id = ?", [componentDisciplineId], async(err, results) =>{
@@ -163,7 +162,24 @@ const createComponent = async(req, res) =>{
                         console.log(err)
                         res.status(401)
                     }else{
-                        res.send({success: true}).status(200)
+                        await sql.query("SELECT id FROM library_families WHERE component_code = ?", [componentCode], async(err, results)=>{
+                            if(!results[0]){
+                                console.log("Component not found")
+                            }else{
+                                const newComponentID = results[0].id
+                                for(let i = 0; i < project_types.length; i++){
+                                    await sql.query("INSERT INTO library_component_has_project_type(family_id, project_type_id) VALUES(?,?)", [newComponentID, project_types[i]], async(err, results)=>{
+                                        if(err){
+                                            console.log(err)
+                                        }else{
+                                            
+                                        }
+                                    })
+                                }
+                                res.send({success: true}).status(200)
+                            }
+                        })
+                        
                     }
                 })
             })
@@ -176,7 +192,7 @@ const createComponent = async(req, res) =>{
 const uploadComponentImage = async(req, res) =>{
     try{   
         await libraryMiddleware.uploadImageMiddleware(req, res);
-        res.status(200)
+        res.send({success:true}).status(200)
     }catch(err){
         res.json({
             error: true,
@@ -188,7 +204,7 @@ const uploadComponentImage = async(req, res) =>{
 const uploadComponentRFA = async(req, res) =>{
     try{   
         await libraryMiddleware.uploadRFAMiddleware(req, res);
-        res.status(200)
+        res.send({success:true}).status(200)
     }catch(err){
         res.json({
             error: true,
