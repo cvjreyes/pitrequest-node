@@ -97,18 +97,23 @@ const getComponentNames = async(req, res) =>{
 
 //Retorna los grupos de projecto con el mismo family id
 const getGroupProjects = async(req, res) =>{
-<<<<<<< HEAD
-    sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ',') AS grupo_projectos FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
-=======
+
     sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ',') AS grupo_projectos, GROUP_CONCAT(lpt.id SEPARATOR ',') AS grupo_projectos_ids FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
->>>>>>> library
+
         if(!results[0]){
+
             console.log("No group of projects")
+
             res.status(401)
+
         }else{
+
             res.json({group_projects: results}).status(200)
+
         }
+
     })
+
 }
 
 //Retorna la imagen de un componente en funcion del nombre
