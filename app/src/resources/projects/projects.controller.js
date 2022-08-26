@@ -923,35 +923,27 @@ const getProjectsWithHours = async(req, res) =>{
 
 const submitProjectsHours = async(req, res) =>{
     const projects = req.body.rows
-    console.log(projects)
     for(let i = 0; i < projects.length; i++){
         if(!projects[i]["Project"] || projects[i]["Project"] == ""){
           
         }else{
-            sql.query("SELECT id FROM projects WHERE name = ?", [projects[i]["Project"]], (err, results)=>{
+            sql.query("SELECT id FROM users WHERE name = ?", [projects[i]["Admin"]], (err, results)=>{
                 if(!results[0]){
                     res.send({success: false}).status(401)
                 }else{
-                    sql.query("SELECT id FROM users WHERE name = ?", [projects[i]["Admin"]], (err, results)=>{
-                        if(!results[0]){
-                            res.send({success: false}).status(401)
-                        }else{
-                            let admin_id = results[0].id
-                            sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
-                                if(results[0]){
-                                    sql.query("UPDATE projects SET name = ?, sup_estihrs = ?, default_admin_id = ?, active = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], admin_id, Number(projects[i]["Active"]), projects[i]["id"]], (err, results) =>{
-                                        if(err){
-                                            console.log(err)
-                                            res.send({success: false}).status(401)
-                                        }
-                                    })
+                    let admin_id = results[0].id
+                    sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
+                        if(results[0]){
+                            sql.query("UPDATE projects SET name = ?, sup_estihrs = ?, default_admin_id = ?, active = ? WHERE id = ?", [projects[i]["Project"],  projects[i]["Hours"], admin_id, Number(projects[i]["Active"]), projects[i]["id"]], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
                                 }
                             })
                         }
                     })
-                    
                 }
-        })
+            })
       }
     }
       res.send({success: 1}).status(200)
@@ -1054,24 +1046,20 @@ const submitOffersHours = async(req, res) =>{
         if(!offers[i]["Offer"] || offers[i]["Offer"] == ""){
           
         }else{
-            sql.query("SELECT id FROM offers WHERE name = ?", [offers[i]["Offer"]], (err, results)=>{
-                if(!results[0]){
-                    res.send({success: false}).status(401)
-                }else{
-                    sql.query("SELECT * FROM offers WHERE id = ?", [offers[i]["id"]], (err, results)=>{
-                        if(results[0]){
-                            sql.query("UPDATE offers SET name = ?, sup_estihrs = ? WHERE id = ?", [offers[i]["Offer"],  offers[i]["Hours"],  offers[i]["id"]], (err, results) =>{
-                                if(err){
-                                    console.log(err)
-                                    res.send({success: false}).status(401)
-                                }
-                            })
+            
+            sql.query("SELECT * FROM offers WHERE id = ?", [offers[i]["id"]], (err, results)=>{
+                if(results[0]){
+                    sql.query("UPDATE offers SET name = ?, sup_estihrs = ? WHERE id = ?", [offers[i]["Offer"],  offers[i]["Hours"],  offers[i]["id"]], (err, results) =>{
+                        if(err){
+                            console.log(err)
+                            res.send({success: false}).status(401)
                         }
                     })
-                                      
                 }
-        })
-      }
+            })
+                                
+        }
+        
     }
       res.send({success: 1}).status(200)
 }
