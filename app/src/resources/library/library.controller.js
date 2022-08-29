@@ -325,6 +325,95 @@ const addComponentDiscipline = async(req, res) =>{
     })
 }
 
+const updateFilters = async(req, res) =>{
+    const types = req.body.component_types
+    const disciplines = req.body.component_disciplines
+    const brands = req.body.component_brands
+    const projectTypes = req.body.project_types
+
+    for (let i = 0; i < types.length; i++) {
+        if(types[i].type && types[i].type != ""){
+            if(types[i].id){
+                sql.query("UPDATE library_component_types SET type = ? WHERE id = ?", [types[i].type, types[i].id], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }else{
+                sql.query("INSERT INTO library_component_types(type) VALUES(?)", [types[i].type], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }
+        }        
+    }
+
+    for (let i = 0; i < projectTypes.length; i++) {
+        if(projectTypes[i].project_type && projectTypes[i].project_type!= ""){
+            if(projectTypes[i].id){
+                sql.query("UPDATE library_project_types SET project_type = ? WHERE id = ?", [projectTypes[i].project_type, projectTypes[i].id], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }else{
+                sql.query("INSERT INTO library_project_types(project_type) VALUES(?)", [projectTypes[i].project_type], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }
+        }        
+    }
+
+    for (let i = 0; i < disciplines.length; i++) {
+        if(disciplines[i].discipline && disciplines[i].disciplines != "" && disciplines[i].code && disciplines[i].code != ""){
+            if(disciplines[i].id){
+                sql.query("UPDATE library_component_disciplines SET discipline = ?, code = ? WHERE id = ?", [disciplines[i].discipline, disciplines[i].code, disciplines[i].id], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }else{
+                sql.query("INSERT INTO library_component_disciplines(discipline, code) VALUES(?,?)", [disciplines[i].discipline, disciplines[i].discipline], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }
+        }        
+    }
+
+    for (let i = 0; i < brands.length; i++) {
+        if(brands[i].brand && brands[i].brand != ""){
+            if(brands[i].id){
+                sql.query("UPDATE library_component_brands SET brand = ? WHERE id = ?", [brands[i].brand, brands[i].id], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }else{
+                sql.query("INSERT INTO library_component_brands(brand) VALUES(?)", [brands[i].brand], (err, results)=>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }
+        }        
+    }
+
+    res.send({success: true}).status(200)
+}
+
 module.exports = {
     getLibrary,
     getProjectTypes,
@@ -344,5 +433,6 @@ module.exports = {
     addProjectType,
     addComponentType,
     addComponentBrand,
-    addComponentDiscipline
+    addComponentDiscipline,
+    updateFilters
   };

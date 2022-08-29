@@ -26,6 +26,7 @@ let routes = (app) => {
   router.post("/addComponentType", library.addComponentType)
   router.post("/addComponentBrand", library.addComponentBrand)
   router.post("/addComponentDiscipline", library.addComponentDiscipline)
+  router.post("/updateFilters", library.updateFilters)
   app.use(router);
 
 };
