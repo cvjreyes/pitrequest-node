@@ -12,10 +12,16 @@ const getLibrary = async(req, res) =>{
         }else{
             for(let i = 0; i < results.length; i++){
                 let path = './app/storage/library/images/' + results[i].component_code +".png";
+                let rfa_path = './app/storage/library/rfa/' + results[i].component_code +".rfa";
                 if (fs.existsSync(path)) {
                     results[i].image_path = "/images/" + results[i].component_code +".png"
                 }else{
                     results[i].image_path = "/images/" + results[i].component_code +".jpg"
+                }
+                if (fs.existsSync(rfa_path)) {
+                    results[i].rfa_path = "/rfa/" + results[i].component_code +".rfa"
+                }else{
+                    results[i].rfa_path = "/rfa/" + results[i].component_code +".zip"
                 }
             }
             res.json({library: results}).status(200)
@@ -132,8 +138,13 @@ const getComponentRFA = async(req, res) =>{
     const rfaName = req.params.componentName
         
     let path = './app/storage/library/rfa/' + rfaName +".rfa";
+    let zip_path = './app/storage/library/rfa/' + rfaName +".zip";
     if (fs.existsSync(path)) {
         var file = fs.createReadStream(path);
+        file.pipe(res);
+        res.status(200)
+    }else if(fs.existsSync(zip_path)){
+        var file = fs.createReadStream(zip_path);
         file.pipe(res);
         res.status(200)
     }else{
