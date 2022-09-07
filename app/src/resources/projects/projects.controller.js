@@ -950,7 +950,7 @@ const submitProjectsHours = async(req, res) =>{
 }
 
 const getProjectsTotalHours = async(req, res) =>{
-    sql.query("SELECT t.name as name , t.sup_estihrs as estimated, SUM(t.hours) as hours FROM (SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_ifc_dgn_step RIGHT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_view_in_navis RIGHT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_reporting_isometric RIGHT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_not_working_component RIGHT JOIN projects ON qtracker_not_working_component.project_id = projects.id UNION ALL SELECT projects.name, hours, sup_estihrs FROM qtracker_request_report RIGHT JOIN projects ON qtracker_request_report.project_id = projects.id) t GROUP BY t.name", (err, results) =>{
+    sql.query("SELECT t.id as id, t.name as name , t.sup_estihrs as estimated, SUM(t.hours) as hours FROM (SELECT projects.id, projects.name, hours, sup_estihrs FROM qtracker_not_reporting_ifc_dgn_step RIGHT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id UNION ALL SELECT projects.id, projects.name, hours, sup_estihrs FROM qtracker_not_view_in_navis RIGHT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id UNION ALL SELECT projects.id, projects.name, hours, sup_estihrs FROM qtracker_not_reporting_isometric RIGHT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id UNION ALL SELECT projects.id, projects.name, hours, sup_estihrs FROM qtracker_not_working_component RIGHT JOIN projects ON qtracker_not_working_component.project_id = projects.id UNION ALL SELECT projects.id, projects.name, hours, sup_estihrs FROM qtracker_request_report RIGHT JOIN projects ON qtracker_request_report.project_id = projects.id) t GROUP BY t.name", (err, results) =>{
         if(!results[0]){
             res.send({success: false}).status(401)
         }else{
@@ -1109,6 +1109,17 @@ const getAllProjects = async(req, res) =>{
     })
 }
 
+const getUsersByProject = async(req, res) =>{
+    sql.query("SELECT email FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id JOIN projects ON model_has_projects.project_id = projects.id WHERE projects.id = ?", [req.params.project_id], (err, results) =>{
+        if(!results[0]){
+            res.status(401)
+        }else{
+            console.log(results)
+            res.json({emails: results}).status(200)
+        }
+    })
+}
+
 module.exports = {
     getProjectsByUser,
     getAdmins,
@@ -1140,5 +1151,6 @@ module.exports = {
     submitOffersChanges,
     submitOffersHours,
     createOffer,
-    getAllProjects
+    getAllProjects,
+    getUsersByProject
   };
