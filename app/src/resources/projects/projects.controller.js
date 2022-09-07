@@ -1110,11 +1110,10 @@ const getAllProjects = async(req, res) =>{
 }
 
 const getUsersByProject = async(req, res) =>{
-    sql.query("SELECT email FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id JOIN projects ON model_has_projects.project_id = projects.id WHERE projects.id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT email FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id JOIN projects ON model_has_projects.project_id = projects.id WHERE projects.id = ? AND users.id != 1", [req.params.project_id], (err, results) =>{
         if(!results[0]){
             res.status(401)
         }else{
-            console.log(results)
             res.json({emails: results}).status(200)
         }
     })
