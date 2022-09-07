@@ -7,6 +7,11 @@ let routes = (app) => {
   router.get("/getSpecsByProject", inst_general.getSpecsByProject)
   router.get("/getInstTypes", inst_general.getInstTypes)
   router.get("/getPComs", inst_general.getPComs)
+  router.get("/getDiameters", inst_general.getDiameters)
+  router.post("/submitInstGeneral", inst_general.submitInstGeneral)
+  router.post("/setInstReadyE3d", inst_general.setInstReadyE3d)
+  router.post("/cancelInstReadyE3d", inst_general.cancelInstReadyE3d)
+
   app.use(router);
 };
 
