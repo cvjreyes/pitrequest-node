@@ -5,7 +5,7 @@ const fs = require("fs");
 
 //Retorna toda la información de la librería
 const getLibrary = async(req, res) =>{
-    sql.query("SELECT library_families.id, library_project_types.id as project_type_id, project_type, library_component_types.id as component_type_id, type as component_type, library_component_brands.id as component_brand_id, brand as component_brand, library_component_disciplines.id as component_discipline_id, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id JOIN library_component_has_project_type ON library_families.id = library_component_has_project_type.family_id JOIN library_project_types ON library_component_has_project_type.project_type_id = library_project_types.id GROUP BY library_families.id ORDER BY library_families.id", (err, results) =>{
+    sql.query("SELECT library_families.id, library_component_types.id as component_type_id, type as component_type, library_component_brands.id as component_brand_id, brand as component_brand, library_component_disciplines.id as component_discipline_id, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id GROUP BY library_families.id ORDER BY library_families.id", (err, results) =>{
         if(!results[0]){
             console.log("No library")
             res.status(401)
@@ -29,17 +29,6 @@ const getLibrary = async(req, res) =>{
     })
 }
 
-//Retorna los tipos de proyecto
-const getProjectTypes = async(req, res) =>{
-    sql.query("SELECT * FROM library_project_types", (err, results) =>{
-        if(!results[0]){
-            console.log("No project types")
-            res.status(401)
-        }else{
-            res.json({project_types: results}).status(200)
-        }
-    })
-}
 
 //Retorna los tipos de componentes
 const getComponentTypes = async(req, res) =>{
@@ -101,26 +90,6 @@ const getComponentNames = async(req, res) =>{
     })
 }
 
-//Retorna los grupos de projecto con el mismo family id
-const getGroupProjects = async(req, res) =>{
-
-    sql.query("SELECT lhpt.family_id, GROUP_CONCAT(lpt.project_type SEPARATOR ',') AS grupo_projectos, GROUP_CONCAT(lpt.id SEPARATOR ',') AS grupo_projectos_ids FROM library_component_has_project_type as lhpt, library_project_types as lpt WHERE lhpt.project_type_id = lpt.id GROUP BY lhpt.family_id", (err, results) =>{
-
-        if(!results[0]){
-
-            console.log("No group of projects")
-
-            res.status(401)
-
-        }else{
-
-            res.json({group_projects: results}).status(200)
-
-        }
-
-    })
-
-}
 
 //Retorna la imagen de un componente en funcion del nombre
 const getComponentImage = async(req, res) =>{
@@ -161,9 +130,7 @@ const createComponent = async(req, res) =>{
     const componentDisciplineId = req.body.componentDisciplineId
     const componentName = req.body.componentName
     const componentDescription = req.body.componentDescription
-    const project_types = req.body.project_types
     let componentCode = ""
-    console.log(project_types)
     await sql.query("SELECT code FROM library_component_disciplines WHERE id = ?", [componentDisciplineId], async(err, results) =>{
         if(!results[0]){
             console.log("Discipline does not exist")
@@ -182,24 +149,7 @@ const createComponent = async(req, res) =>{
                         console.log(err)
                         res.status(401)
                     }else{
-                        await sql.query("SELECT id FROM library_families WHERE component_code = ?", [componentCode], async(err, results)=>{
-                            if(!results[0]){
-                                console.log("Component not found")
-                            }else{
-                                const newComponentID = results[0].id
-                                for(let i = 0; i < project_types.length; i++){
-                                    await sql.query("INSERT INTO library_component_has_project_type(family_id, project_type_id) VALUES(?,?)", [newComponentID, project_types[i]], async(err, results)=>{
-                                        if(err){
-                                            console.log(err)
-                                        }else{
-                                            
-                                        }
-                                    })
-                                }
-                                res.send({success: true, filename: componentCode}).status(200)
-                            }
-                        })
-                        
+                        res.send({success: true, filename: componentCode}).status(200)
                     }
                 })
             })
@@ -214,7 +164,6 @@ const updateComponent = async(req, res) =>{
     const componentDisciplineId = req.body.componentDisciplineId
     const componentName = req.body.componentName
     const componentDescription = req.body.componentDescription
-    const project_types = req.body.project_types
     const componentId = req.body.componentId
 
     sql.query("UPDATE library_families SET component_type_id = ?, component_brand_id = ?, component_discipline_id = ?, component_name = ?, component_description = ? WHERE id = ?", [componentTypeId, componentBrandId, componentDisciplineId, componentName, componentDescription, componentId], (err, results) =>{
@@ -222,23 +171,7 @@ const updateComponent = async(req, res) =>{
             console.log(err)
             res.status(401)
         }else{
-            sql.query("DELETE FROM library_component_has_project_type WHERE family_id = ?", [componentId], (err, results) =>{
-                if(err){
-                    console.log(err)
-                    res.status(401)
-                }else{
-                    for(let i = 0; i < project_types.length; i++){
-                        sql.query("INSERT INTO library_component_has_project_type(family_id, project_type_id) VALUES(?,?)", [componentId, project_types[i]], async(err, results)=>{
-                            if(err){
-                                console.log(err)
-                            }else{
-                                
-                            }
-                        })
-                    }
-                    res.send({success: true}).status(200)
-                }
-            })
+            res.send({success: true}).status(200)
         }
     })
 }
@@ -279,19 +212,6 @@ const uploadComponentRFA = async(req, res) =>{
     }
 }
 
-//Crea un nuevo tipo de proyecto
-const addProjectType = async(req, res) =>{
-    const projectType = req.body.projectType
-
-    sql.query("INSERT INTO library_project_types(project_type) VALUES(?)", [projectType], (err, results) =>{
-        if(err){
-            console.log(err)
-            res.status(401)
-        }else{
-            res.send({success: true}).status(200)
-        }
-    })
-}
 
 //Crea un nuevo tipo de componente
 const addComponentType = async(req, res) =>{
@@ -340,7 +260,6 @@ const updateFilters = async(req, res) =>{
     const types = req.body.component_types
     const disciplines = req.body.component_disciplines
     const brands = req.body.component_brands
-    const projectTypes = req.body.project_types
 
     for (let i = 0; i < types.length; i++) {
         if(types[i].type && types[i].type != ""){
@@ -353,26 +272,6 @@ const updateFilters = async(req, res) =>{
                 })
             }else{
                 sql.query("INSERT INTO library_component_types(type) VALUES(?)", [types[i].type], (err, results)=>{
-                    if(err){
-                        console.log(err)
-                        res.status(401)
-                    }
-                })
-            }
-        }        
-    }
-
-    for (let i = 0; i < projectTypes.length; i++) {
-        if(projectTypes[i].project_type && projectTypes[i].project_type!= ""){
-            if(projectTypes[i].id){
-                sql.query("UPDATE library_project_types SET project_type = ? WHERE id = ?", [projectTypes[i].project_type, projectTypes[i].id], (err, results)=>{
-                    if(err){
-                        console.log(err)
-                        res.status(401)
-                    }
-                })
-            }else{
-                sql.query("INSERT INTO library_project_types(project_type) VALUES(?)", [projectTypes[i].project_type], (err, results)=>{
                     if(err){
                         console.log(err)
                         res.status(401)
@@ -427,7 +326,6 @@ const updateFilters = async(req, res) =>{
 
 module.exports = {
     getLibrary,
-    getProjectTypes,
     getComponentTypes,
     getComponentBrands,
     getComponentCodes,
@@ -435,13 +333,11 @@ module.exports = {
     getComponentNames,
     getComponentImage,
     getComponentRFA,
-    getGroupProjects,
     createComponent,
     updateComponent,
     deleteComponent,
     uploadComponentImage,
     uploadComponentRFA,
-    addProjectType,
     addComponentType,
     addComponentBrand,
     addComponentDiscipline,

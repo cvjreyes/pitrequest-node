@@ -6,13 +6,11 @@ let routes = (app) => {
 
   //Getters
   router.get("/getLibrary", library.getLibrary);
-  router.get("/getProjectTypes", library.getProjectTypes);
   router.get("/getComponentTypes", library.getComponentTypes);
   router.get("/getComponentBrands", library.getComponentBrands);
   router.get("/getComponentCodes", library.getComponentCodes);
   router.get("/getComponentDisciplines", library.getComponentDisciplines);
   router.get("/getComponentNames", library.getComponentNames);
-  router.get("/getGroupProjects", library.getGroupProjects);
   router.get("/getComponentImage/:componentName", library.getComponentImage);
   router.get("/getComponentRFA/:componentName", library.getComponentRFA)
 
@@ -22,7 +20,6 @@ let routes = (app) => {
   router.post("/deleteComponent", library.deleteComponent)
   router.post("/uploadComponentImage", library.uploadComponentImage)
   router.post("/uploadComponentRFA", library.uploadComponentRFA)
-  router.post("/addProjectType", library.addProjectType)
   router.post("/addComponentType", library.addComponentType)
   router.post("/addComponentBrand", library.addComponentBrand)
   router.post("/addComponentDiscipline", library.addComponentDiscipline)
