@@ -8,10 +8,14 @@ let routes = (app) => {
   router.get("/getInstTypes", inst_general.getInstTypes)
   router.get("/getPComs", inst_general.getPComs)
   router.get("/getDiameters", inst_general.getDiameters)
+  router.get("/instStatusDataByProject/:project_id", inst_general.instStatusDataByProject)
+  router.get("/downloadInstsGeneralByProject/:project_id", inst_general.downloadInstsGeneralByProject)
+
   router.post("/submitInstGeneral", inst_general.submitInstGeneral)
   router.post("/instReadyE3d", inst_general.instReadyE3d)
   router.post("/instCancelReadyE3d", inst_general.instCancelReadyE3d)
-
+  router.post("/deleteInst", inst_general.deleteInst)
+  router.post("/excludeInst", inst_general.excludeInst)
   app.use(router);
 };
 
