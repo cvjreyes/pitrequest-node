@@ -56,28 +56,72 @@ const getDiameters = async(req, res) =>{
 
 const submitInstGeneral = async(req, res) =>{
     const new_insts = req.body.rows
+    console.log(new_insts)
     for(let i = 0; i < new_insts.length; i++){
-        if(new_insts[i].id){
-            sql.query("UPDATE insts_generic SET spec_id = ?, instrument_types_id = ?, pcon_id = ?, from_diameter_id = ?, to_diameter_id = ?, flg_con_id = ? WHERE id = ?", [new_insts[i]["spec"], new_insts[i]["instrument_type"], new_insts[i]["pcon"], new_insts[i]["from"], new_insts[i]["to"], new_insts[i]["flg_con"], new_insts[i].id], (err, results) =>{
-                if(err){
-                    console.log(err)
-                    res.status(401)
+        let spec_id = null
+        let inst_type_id = null
+        let pcons_id = null
+        let from_id = null
+        let to_id = null
+        let bolt_id = null
+        sql.query("SELECT id FROM specs WHERE spec = ?", [new_insts[i].spec], (err, results) =>{
+            if(results[0]){
+                spec_id = results[0].id
+            }  
+            sql.query("SELECT id FROM instrument_types WHERE type = ?", [new_insts[i].instrument_type], (err, results) =>{
+                if(results[0]){
+                    inst_type_id = results[0].id
                 }
+                sql.query("SELECT id FROM pcons WHERE name = ?", [new_insts[i].pcons_name], (err, results) =>{
+                    if(results[0]){
+                        pcons_id = results[0].id
+                    }
+                    sql.query("SELECT id FROM diameters WHERE dn = ?", [new_insts[i].diameters_from_dn], (err, results) =>{
+                        if(results[0]){
+                            from_id = results[0].id
+                        }
+                        sql.query("SELECT id FROM diameters WHERE dn = ?", [new_insts[i].diameters_to_dn], (err, results) =>{
+                            if(results[0]){
+                                to_id = results[0].id
+                            }
+                            sql.query("SELECT id FROM csptracker_bolt_types WHERE type = ?", [new_insts[i].bolt_type], (err, results) =>{
+                                if(results[0]){
+                                    bolt_id = results[0].id
+                                }    
+                                if(new_insts[i].id){
+                                    sql.query("UPDATE insts_generic SET spec_id = ?, instrument_types_id = ?, pcon_id = ?, from_diameter_id = ?, to_diameter_id = ?, flg_con_id = ? WHERE id = ?", [spec_id, inst_type_id, pcons_id, from_id, to_id, bolt_id, new_insts[i].id], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.status(401)
+                                        }
+                                    })
+                                }else{
+                                    sql.query("INSERT INTO insts_generic(spec_id, instrument_types_id, pcon_id, from_diameter_id, to_diameter_id, flg_con_id, project_id) VALUES(?,?,?,?,?,?,?)", [spec_id, inst_type_id, pcons_id, from_id, to_id, bolt_id, req.body.project_id], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.status(401)
+                                        }
+                                    })
+                                }                            
+                            })
+                            
+                        })
+                        
+                    })
+                
+                })
+                
             })
-        }else{
-            sql.query("INSET INTO insts_generic(spec_id, instrument_types_id, pcon_id, from_diameter_id, to_diameter_id, flg_con_id) VALUES(?,?,?,?,?,?)", [new_insts[i]["spec"], new_insts[i]["instrument_type"], new_insts[i]["pcon"], new_insts[i]["from"], new_insts[i]["to"], new_insts[i]["flg_con"]], (err, results) =>{
-                if(err){
-                    console.log(err)
-                    res.status(401)
-                }
-            })
-        }
+            
+        })
     }
+    res.send({success: true}).status(200)
+
 }
 
-const setInstReadyE3d = (req, res) =>{
+const instReadyE3d = (req, res) =>{
     let currentDate = new Date()
-    sql.query("UPDATE insts_generic SET ready_e3d = 1, ready_e3d_date = ? WHERE tag = ?", [currentDate, req.body.id], (err, results) =>{
+    sql.query("UPDATE insts_generic SET ready_e3d = 1, ready_e3d_date = ? WHERE id = ?", [currentDate, req.body.id], (err, results) =>{
         if(err){
             res.status(401)
             console.log(err)
@@ -87,8 +131,8 @@ const setInstReadyE3d = (req, res) =>{
     })
 }
 
-const cancelInstReadyE3d = (req, res) =>{
-    sql.query("UPDATE csptracker SET ready_e3d = 0, ready_e3d_date = ? WHERE tag = ?", [null, req.body.tag], (err, results) =>{
+const instCancelReadyE3d = (req, res) =>{
+    sql.query("UPDATE csptracker SET ready_e3d = 0, ready_e3d_date = ? WHERE id = ?", [null, req.body.id], (err, results) =>{
         if(err){
             res.status(401)
             console.log(error)
@@ -105,6 +149,6 @@ module.exports = {
     getPComs,
     getDiameters,
     submitInstGeneral,
-    setInstReadyE3d,
-    cancelInstReadyE3d
+    instReadyE3d,
+    instCancelReadyE3d
 }
