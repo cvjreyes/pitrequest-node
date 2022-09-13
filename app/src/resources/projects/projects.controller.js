@@ -929,7 +929,7 @@ const submitProjectsHours = async(req, res) =>{
         }else{
             sql.query("SELECT id FROM users WHERE name = ?", [projects[i]["Admin"]], (err, results)=>{
                 if(!results[0]){
-                    res.send({success: false}).status(401)
+                    
                 }else{
                     let admin_id = results[0].id
                     sql.query("SELECT * FROM projects WHERE id = ?", [projects[i]["id"]], (err, results)=>{
