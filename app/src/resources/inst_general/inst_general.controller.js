@@ -4,7 +4,7 @@ const drawingMiddleware = require("../inst_general/inst_general.middleware");
 var path = require('path')
 
 const getInstGeneralByProject = async(req, res) =>{
-    sql.query("SELECT insts_generic.id as id, specs.spec as spec, instrument_types.type as instrument_type, pcons.name as pcons_name, diameters_from.dn as diameters_from_dn, diameters_to.dn as diameters_to_dn, csptracker_bolt_types.`type` as bolt_type, ready_load_date, ready_e3d_date, insts_generic.updated_at as insts_generic_updated_at, comments, ready_load, ready_e3d, updated FROM insts_generic LEFT JOIN specs ON spec_id = specs.id LEFT JOIN instrument_types ON instrument_types_id = instrument_types.id LEFT JOIN pcons ON pcon_id = pcons.id LEFT JOIN diameters as diameters_from ON from_diameter_id = diameters_from.id LEFT JOIN diameters as diameters_to ON to_diameter_id = diameters_to.id LEFT JOIN csptracker_bolt_types ON flg_con_id = csptracker_bolt_types.id JOIN projects ON project_id = projects.id WHERE project_id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT insts_generic.id as id, csptracker_specs.spec as spec, instrument_types.type as instrument_type, pcons.name as pcons_name, diameters_from.dn as diameters_from_dn, diameters_to.dn as diameters_to_dn, csptracker_bolt_types.`type` as bolt_type, ready_load_date, ready_e3d_date, insts_generic.updated_at as insts_generic_updated_at, comments, ready_load, ready_e3d, updated FROM insts_generic LEFT JOIN csptracker_specs ON spec_id = csptracker_specs.id LEFT JOIN instrument_types ON instrument_types_id = instrument_types.id LEFT JOIN pcons ON pcon_id = pcons.id LEFT JOIN diameters as diameters_from ON from_diameter_id = diameters_from.id LEFT JOIN diameters as diameters_to ON to_diameter_id = diameters_to.id LEFT JOIN csptracker_bolt_types ON flg_con_id = csptracker_bolt_types.id JOIN projects ON project_id = projects.id WHERE project_id = ?", [req.params.project_id], (err, results) =>{
         if(!results[0]){
             res.send({rows: []}).status(200)
         }else{
@@ -14,7 +14,7 @@ const getInstGeneralByProject = async(req, res) =>{
 }
 
 const getSpecsByProject = async(req, res) =>{
-    sql.query("SELECT DISTINCT specs.id, spec FROM specs JOIN project_has_specs ON specs.id = project_has_specs.spec_id JOIN projects ON project_has_specs.project_id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT DISTINCT csptracker_specs.id, spec FROM csptracker_specs JOIN project_has_specs ON csptracker_specs.id = project_has_specs.spec_id JOIN projects ON project_has_specs.project_id = ?", [req.params.project_id], (err, results) =>{
         if(!results[0]){
             res.send({specs: []}).status(200)
         }else{
@@ -63,7 +63,7 @@ const submitInstGeneral = async(req, res) =>{
         let from_id = null
         let to_id = null
         let bolt_id = null
-        sql.query("SELECT id FROM specs WHERE spec = ?", [new_insts[i].spec], (err, results) =>{
+        sql.query("SELECT id FROM csptracker_specs WHERE spec = ?", [new_insts[i].spec], (err, results) =>{
             if(results[0]){
                 spec_id = results[0].id
             }  
@@ -230,7 +230,7 @@ const instStatusDataByProject = (req, res) =>{
 }
 
 const downloadInstsGeneralByProject = async(req, res) =>{
-    sql.query("SELECT specs.spec as spec, instrument_types.type as instrument_type, pcons.name as pcons_name, diameters_from.dn as diameters_from_dn, diameters_to.dn as diameters_to_dn, csptracker_bolt_types.`type` as bolt_type, ready_load_date, ready_e3d_date, insts_generic.updated_at as insts_generic_updated_at, comments, ready_load, ready_e3d, updated FROM insts_generic LEFT JOIN specs ON spec_id = specs.id LEFT JOIN instrument_types ON instrument_types_id = instrument_types.id LEFT JOIN pcons ON pcon_id = pcons.id LEFT JOIN diameters as diameters_from ON from_diameter_id = diameters_from.id LEFT JOIN diameters as diameters_to ON to_diameter_id = diameters_to.id LEFT JOIN csptracker_bolt_types ON flg_con_id = csptracker_bolt_types.id JOIN projects ON project_id = projects.id WHERE project_id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT csptracker_specs.spec as spec, instrument_types.type as instrument_type, pcons.name as pcons_name, diameters_from.dn as diameters_from_dn, diameters_to.dn as diameters_to_dn, csptracker_bolt_types.`type` as bolt_type, ready_load_date, ready_e3d_date, insts_generic.updated_at as insts_generic_updated_at, comments, ready_load, ready_e3d, updated FROM insts_generic LEFT JOIN csptracker_specs ON spec_id = csptracker_specs.id LEFT JOIN instrument_types ON instrument_types_id = instrument_types.id LEFT JOIN pcons ON pcon_id = pcons.id LEFT JOIN diameters as diameters_from ON from_diameter_id = diameters_from.id LEFT JOIN diameters as diameters_to ON to_diameter_id = diameters_to.id LEFT JOIN csptracker_bolt_types ON flg_con_id = csptracker_bolt_types.id JOIN projects ON project_id = projects.id WHERE project_id = ?", [req.params.project_id], (err, results) =>{
         if(!results[0]){
             res.send({rows: []}).status(200)
         }else{
@@ -239,6 +239,171 @@ const downloadInstsGeneralByProject = async(req, res) =>{
     })
 }
 
+const submitGenerics = async(req, res) =>{
+    const generics = req.body.generics
+    for(let i = 0; i < generics.length; i++){
+        if(generics[i].id){
+            if(generics[i].type){
+                sql.query("UPDATE instrument_types SET type = ? WHERE id = ?", [generics[i].type, generics[i].id], (err, results) =>{
+                    if(err){
+                        res.status(401)
+                        console.log(err)
+                    }
+                })
+            }else{
+                sql.query("DELETE FROM instrument_types WHERE id = ?", [generics[i].id], (err, results) =>{
+                    if(err){
+                        res.status(401)
+                        console.log(err)
+                    }
+                })
+            }
+        }else{
+            sql.query("INSERT INTO instrument_types(type) VALUES(?)", [generics[i].type], (err, results) =>{
+                if(err){
+                    res.status(401)
+                    console.log(err)
+                }
+            })
+        }
+    }
+    res.send({success: true}).status(200)
+}
+
+
+const submitPcons = async(req, res) =>{
+    const pcons = req.body.pcons
+    for(let i = 0; i < pcons.length; i++){
+        if(pcons[i].id){
+            if(pcons[i].pcon){
+                sql.query("UPDATE pcons SET name = ? WHERE id = ?", [pcons[i].pcon, pcons[i].id], (err, results) =>{
+                    if(err){
+                        res.status(401)
+                        console.log(err)
+                    }
+                })
+            }else{
+                sql.query("DELETE FROM pcons WHERE id = ?", [pcons[i].id], (err, results) =>{
+                    if(err){
+                        res.status(401)
+                        console.log(err)
+                    }
+                })
+            }
+        }else{
+            sql.query("INSERT INTO pcons(name) VALUES(?)", [pcons[i].pcon], (err, results) =>{
+                if(err){
+                    res.status(401)
+                    console.log(err)
+                }
+            })
+        }
+    }
+    res.send({success: true}).status(200)
+}
+
+const getSpecsByAllProjects = async(req, res) =>{
+    sql.query("SELECT DISTINCT project_has_specs.id, spec, projects.name as project FROM csptracker_specs JOIN project_has_specs ON csptracker_specs.id = project_has_specs.spec_id JOIN projects ON project_has_specs.project_id = projects.id", (err, results) =>{
+        if(!results[0]){
+            res.send({specs: []}).status(200)
+        }else{
+            res.json({specs: results}).status(200)
+        }
+    })   
+}
+
+
+const submitSpecsByProject = async(req, res) =>{
+    const specs = req.body.specs
+    for(let i = 0; i < specs.length; i++){
+        if(specs[i].id){
+            if(specs[i].spec && specs[i].project){
+                sql.query("SELECT id FROM csptracker_specs WHERE spec = ?",[specs[i].spec], (err, results) =>{
+                    if(results[0]){
+                        const spec_id = results[0].id
+                        sql.query("SELECT id FROM projects WHERE name = ?",[specs[i].project], (err, results) =>{
+                            if(results[0]){
+                                const project_id = results[0].id
+                                sql.query("UPDATE project_has_specs SET spec_id = ?, project_id = ? WHERE id = ?", [spec_id, project_id, specs[i].id], (err, results) =>{
+                                    if(err){
+                                        console.log(err)
+                                        res.status(401)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }else{
+                sql.query("DELETE FROM project_has_specs WHERE id = ?", [specs[i].id], (err, results) =>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }
+        }else{
+            sql.query("SELECT id FROM csptracker_specs WHERE spec = ?",[specs[i].spec], (err, results) =>{
+                if(results[0]){
+                    const spec_id = results[0].id
+                    sql.query("SELECT id FROM projects WHERE name = ?",[specs[i].project], (err, results) =>{
+                        if(results[0]){
+                            const project_id = results[0].id
+                            sql.query("INSERT INTO project_has_specs(spec_id, project_id) VALUES(?,?)", [spec_id, project_id], (err, results) =>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    } 
+    res.send({success: true}).status(200)
+}
+
+const submitPIDsByProject = async(req, res) =>{
+    const pids = req.body.pids
+    for(let i = 0; i < pids.length; i++){
+        if(pids[i].id){
+            if(pids[i].pid && pids[i].project){
+                sql.query("SELECT id FROM projects WHERE name = ?",[pids[i].project], (err, results) =>{
+                    if(results[0]){
+                        const project_id = results[0].id
+                        sql.query("UPDATE pids SET pid = ?, project_id = ? WHERE id = ?", [pids[i].pid, project_id, pids[i].id], (err, results) =>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }
+                        })
+                    }
+                })
+            }else{
+                sql.query("DELETE FROM pids WHERE id = ?", [pids[i].id], (err, results) =>{
+                    if(err){
+                        console.log(err)
+                        res.status(401)
+                    }
+                })
+            }
+        }else{
+            sql.query("SELECT id FROM projects WHERE name = ?",[pids[i].project], (err, results) =>{
+                if(results[0]){
+                    const project_id = results[0].id
+                    sql.query("INSERT INTO pids(pid, project_id) VALUES(?,?)", [pids[i].pid, project_id], (err, results) =>{
+                        if(err){
+                            console.log(err)
+                            res.status(401)
+                        }
+                    })
+                }
+            })               
+        }
+    } 
+    res.send({success: true}).status(200)
+}
 
 module.exports = {
     getInstGeneralByProject,
@@ -252,5 +417,10 @@ module.exports = {
     deleteInst,
     excludeInst,
     instStatusDataByProject,
-    downloadInstsGeneralByProject
+    downloadInstsGeneralByProject,
+    submitGenerics,
+    submitPcons,
+    getSpecsByAllProjects,
+    submitSpecsByProject,
+    submitPIDsByProject
 }
