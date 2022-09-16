@@ -26,6 +26,7 @@ require("./resources/projects/projects.routes.js")(app);
 require("./resources/csptracker/csptracker.routes.js")(app);
 require("./resources/library/library.routes.js")(app);
 require("./resources/inst_general/inst_general.routes.js")(app);
+require("./resources/psv/psv.routes.js")(app);
 
 app.listen(process.env.NODE_DB_PORT, () => {
     console.log("Server is running on port "+process.env.NODE_DB_PORT+".");
