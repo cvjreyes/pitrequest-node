@@ -1,6 +1,5 @@
 const sql = require("../../db.js");
 const fs = require("fs");
-const drawingMiddleware = require("../inst_general/inst_general.middleware");
 var path = require('path')
 
 const getInstGeneralByProject = async(req, res) =>{
