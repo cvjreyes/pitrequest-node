@@ -1,4 +1,7 @@
 const sql = require("../../db.js");
+const drawingMiddleware = require("../special_instruments/special_instruments.middleware");
+const fs = require("fs");
+var path = require('path')
 
 const getSpecialsByProject = async(req, res) =>{
     sql.query("SELECT * FROM special_instruments_full_view WHERE project_id = ?", [req.params.project_id], (err, results) =>{
@@ -18,7 +21,7 @@ const specialsStatusDataByProject = async(req, res) =>{
     let excluded = 0
     let deleted = 0
     let hold_revn = 0
-    sql.query("SELECT ready_load, ready_e3d, updated FROM psvs WHERE project_id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT ready_load, ready_e3d, updated FROM special_instruments WHERE project_id = ?", [req.params.project_id], (err, results) =>{
         if(!results){
            
         }else if(!results[0]){
@@ -47,93 +50,201 @@ const specialsStatusDataByProject = async(req, res) =>{
 }
 
 const submitSpecials = async(req, res) =>{
-    const new_psvs = req.body.rows
-    for(let i = 0; i < new_psvs.length; i++){
-        let spec_inlet_id = null
-        let p1bore_inlet_id = null
-        let rating_inlet_id = null
-        let flg_inlet_id = null
-        let spec_outlet_id = null
-        let p2bore_outlet_id = null
-        let rating_outlet_id = null
-        let flg_outlet_id = null
-        sql.query("SELECT id FROM csptracker_specs WHERE spec = ?", [new_psvs[i].spec_inlet], (err, results) =>{
+    const new_specials = req.body.rows
+    for(let i = 0; i < new_specials.length; i++){
+        let spec_id = null
+        let p1bore_id = null
+        let p2bore_id = null
+        let p3bore_id = null
+        let rating_id = null
+        let end_preparation_id = null
+        let bolt_type_id = null
+        let drawing_id = null
+        let filename = null
+        sql.query("SELECT id FROM csptracker_specs WHERE spec = ?", [new_specials[i].spec], (err, results) =>{
             if(results[0]){
-                spec_inlet_id = results[0].id
+                spec_id = results[0].id
             }  
-            sql.query("SELECT id FROM csptracker_specs WHERE spec = ?", [new_psvs[i].spec_outlet], (err, results) =>{
+            sql.query("SELECT id FROM diameters WHERE dn = ?", [new_specials[i].p1bore], (err, results) =>{
                 if(results[0]){
-                    spec_outlet_id = results[0].id
+                    p1bore_id = results[0].id
                 }
-                sql.query("SELECT id FROM diameters WHERE dn = ?", [new_psvs[i].p1bore_inlet], (err, results) =>{
+                sql.query("SELECT id FROM diameters WHERE dn = ?", [new_specials[i].p2bore], (err, results) =>{
                     if(results[0]){
-                        p1bore_inlet_id = results[0].id
+                        p2bore_id = results[0].id
                     }
-                    sql.query("SELECT id FROM diameters WHERE dn = ?", [new_psvs[i].p2bore_outlet], (err, results) =>{
+                    sql.query("SELECT id FROM diameters WHERE dn = ?", [new_specials[i].p3bore], (err, results) =>{
                         if(results[0]){
-                            p2bore_outlet_id = results[0].id
+                            p3bore_id = results[0].id
                         }
-                        sql.query("SELECT id FROM csptracker_ratings WHERE rating = ?", [new_psvs[i].rating_inlet], (err, results) =>{
+                        sql.query("SELECT id FROM csptracker_ratings WHERE rating = ?", [new_specials[i].rating], (err, results) =>{
                             if(results[0]){
-                                rating_inlet_id = results[0].id
+                                rating_id = results[0].id
                             }
-                            sql.query("SELECT id FROM csptracker_ratings WHERE rating = ?", [new_psvs[i].rating_outlet], (err, results) =>{
+                            sql.query("SELECT id FROM csptracker_end_preparations WHERE state = ?", [new_specials[i].end_preparation], (err, results) =>{
                                 if(results[0]){
-                                    rating_outlet_id = results[0].id
+                                    end_preparation_id = results[0].id
                                 }    
-                                sql.query("SELECT id FROM csptracker_bolt_types WHERE type = ?", [new_psvs[i].flg_inlet], (err, results) =>{
+                                sql.query("SELECT id FROM csptracker_bolt_types WHERE type = ?", [new_specials[i].type], (err, results) =>{
                                     if(results[0]){
-                                        flg_inlet_id = results[0].id
+                                        bolt_type_id = results[0].id
                                     }
-                                    sql.query("SELECT id FROM csptracker_bolt_types WHERE type = ?", [new_psvs[i].flg_outlet], (err, results) =>{
+                                    sql.query("SELECT id, filename FROM special_instruments_description_drawings WHERE code = ?", [new_specials[i].code], (err, results) =>{
                                         if(results[0]){
-                                            flg_outlet_id = results[0].id
-                                        }    
-                                        if(new_psvs[i].id){
-                                            sql.query("SELECT ready_e3d FROM psvs WHERE id = ?", [new_psvs[i].id], (err, results)=>{
-                                                if(results[0].ready_e3d == 0){
-                                                    if(req.body.role == "Design"){
-                                                        sql.query("UPDATE psvs SET tag = ?, spec_inlet_id = ?, p1bore_inlet_id = ?, rating_inlet_id = ?, flg_inlet_id = NULL, bolt_longitude_inlet = NULL, spec_outlet_id = ?, p2bore_outlet_id = ?, rating_outlet_id = ?, flg_outlet_id = NULL, bolt_longitude_outlet = NULL, h1 = ?, a = ?, b = ?, comments = ? WHERE id = ?", [new_psvs[i].tag, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, new_psvs[i].h1, new_psvs[i].a, new_psvs[i].b, new_psvs[i].comments, new_psvs[i].id], (err, results) =>{
-                                                            if(err){
-                                                                console.log(err)
-                                                                res.status(401)
-                                                            }
-                                                        })
-                                                    }else{
-                                                        sql.query("UPDATE psvs SET flg_inlet_id = ?, bolt_longitude_inlet = ?, flg_outlet_id = ?, bolt_longitude_outlet = ? WHERE id = ?", [flg_inlet_id, new_psvs[i].bolt_longitude_inlet, flg_outlet_id, new_psvs[i].bolt_longitude_outlet, new_psvs[i].id], (err, results) =>{
-                                                            if(err){
-                                                                console.log(err)
-                                                                res.status(401)
-                                                            }
-                                                        })
-                                                    }
-                                                }else if(results[0].ready_e3d == 1){
-                                                    if(req.body.role == "Design"){
-                                                        sql.query("UPDATE psvs SET tag = ?, spec_inlet_id = ?, p1bore_inlet_id = ?, rating_inlet_id = ?, flg_inlet_id = NULL, bolt_longitude_inlet = NULL, spec_outlet_id = ?, p2bore_outlet_id = ?, rating_outlet_id = ?, flg_outlet_id = NULL, bolt_longitude_outlet = NULL, h1 = ?, a = ?, b = ?, comments = ?, updated = 1 WHERE id = ?", [new_psvs[i].tag, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, new_psvs[i].h1, new_psvs[i].a, new_psvs[i].b, new_psvs[i].comments, new_psvs[i].id], (err, results) =>{
-                                                            if(err){
-                                                                console.log(err)
-                                                                res.status(401)
-                                                            }
-                                                        })
-                                                    }else{
-                                                        sql.query("UPDATE psvs SET flg_inlet_id = ?, bolt_longitude_inlet = ?, flg_outlet_id = ?, bolt_longitude_outlet = ?, updated = 1 WHERE id = ?", [flg_inlet_id, new_psvs[i].bolt_longitude_inlet, flg_outlet_id, new_psvs[i].bolt_longitude_outlet, new_psvs[i].id], (err, results) =>{
-                                                            if(err){
-                                                                console.log(err)
-                                                                res.status(401)
-                                                            }
-                                                        })
-                                                    }
-                                                }
-                                            })
+                                            drawing_id = results[0].id
+                                            filename = results[0].filename
                                             
+                                            if(new_specials[i].id){
+                                                sql.query("SELECT ready_e3d FROM special_instruments WHERE id = ?", [new_specials[i].id], (err, results)=>{
+                                                    if(results[0].ready_e3d == 0){
+                                                        if(req.body.role == "Design"){
+                                                            sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ? WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
+                                                                if(err){
+                                                                    console.log(err)
+                                                                    res.status(401)
+                                                                }
+                                                            })
+                                                        }else{
+                                                            sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ? WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
+                                                                if(err){
+                                                                    console.log(err)
+                                                                    res.status(401)
+                                                                }
+                                                            })
+                                                        }
+                                                    }else if(results[0].ready_e3d == 1){
+                                                        if(req.body.role == "Design"){
+                                                            sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ?, updated = 1 WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
+                                                                if(err){
+                                                                    console.log(err)
+                                                                    res.status(401)
+                                                                }
+                                                            })
+                                                        }else{
+                                                            sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
+                                                                if(err){
+                                                                    console.log(err)
+                                                                    res.status(401)
+                                                                }
+                                                            })
+                                                        }
+                                                    }
+                                                })
+                                                
+                                            }else{
+                                                sql.query("INSERT INTO special_instruments(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, p3_diameter_id, rating_id, end_preparation_id, description_iso, bolt_type_id, bolt_longitude, instruments_description_drawing_id, instruments_description_filename, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [new_specials[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, bolt_type_id, new_specials[i].bolt_longitude, drawing_id, filename, new_specials[i].comments], (err, results) =>{
+                                                    if(err){
+                                                        console.log(err)
+                                                        res.status(401)
+                                                    }
+                                                })
+                                            }
                                         }else{
-                                            sql.query("INSERT INTO psvs(tag, project_id, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, h1, a, b, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", [new_psvs[i].tag, req.body.project_id, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, new_psvs[i].h1, new_psvs[i].a, new_psvs[i].b, new_psvs[i].comments], (err, results) =>{
-                                                if(err){
-                                                    console.log(err)
-                                                    res.status(401)
+                                            if(new_specials[i].code){
+                                                sql.query("INSERT INTO special_instruments_description_drawings(code) VALUES(?)", [new_specials[i].code], (err, results) =>{
+                                                    if(err){
+                                                        console.log(err)
+                                                        res.status(401)
+                                                    }else{
+                                                        sql.query("SELECT id FROM special_instruments_description_drawings WHERE code = ?", [new_specials[i].code], (err, results) =>{                                             
+                                                            drawing_id = results[0].id
+                                                            if(new_specials[i].id){
+                                                                sql.query("SELECT ready_e3d FROM special_instruments WHERE id = ?", [new_specials[i].id], (err, results)=>{
+                                                                    if(results[0].ready_e3d == 0){
+                                                                        if(req.body.role == "Design"){
+                                                                            sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ? WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
+                                                                                if(err){
+                                                                                    console.log(err)
+                                                                                    res.status(401)
+                                                                                }
+                                                                            })
+                                                                        }else{
+                                                                            sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ? WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
+                                                                                if(err){
+                                                                                    console.log(err)
+                                                                                    res.status(401)
+                                                                                }
+                                                                            })
+                                                                        }
+                                                                    }else if(results[0].ready_e3d == 1){
+                                                                        if(req.body.role == "Design"){
+                                                                            sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ?, updated = 1 WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
+                                                                                if(err){
+                                                                                    console.log(err)
+                                                                                    res.status(401)
+                                                                                }
+                                                                            })
+                                                                        }else{
+                                                                            sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
+                                                                                if(err){
+                                                                                    console.log(err)
+                                                                                    res.status(401)
+                                                                                }
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                })
+                                                                
+                                                            }else{
+                                                                sql.query("INSERT INTO special_instruments(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, p3_diameter_id, rating_id, end_preparation_id, description_iso, bolt_type_id, bolt_longitude, instruments_description_drawing_id, instruments_description_filename, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [new_specials[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, bolt_type_id, new_specials[i].bolt_longitude, drawing_id, filename, new_specials[i].comments], (err, results) =>{
+                                                                    if(err){
+                                                                        console.log(err)
+                                                                        res.status(401)
+                                                                    }
+                                                                })
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            }else{
+                                                if(new_specials[i].id){
+                                                    sql.query("SELECT ready_e3d FROM special_instruments WHERE id = ?", [new_specials[i].id], (err, results)=>{
+                                                        if(results[0].ready_e3d == 0){
+                                                            if(req.body.role == "Design"){
+                                                                sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ? WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
+                                                                    if(err){
+                                                                        console.log(err)
+                                                                        res.status(401)
+                                                                    }
+                                                                })
+                                                            }else{
+                                                                sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ? WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
+                                                                    if(err){
+                                                                        console.log(err)
+                                                                        res.status(401)
+                                                                    }
+                                                                })
+                                                            }
+                                                        }else if(results[0].ready_e3d == 1){
+                                                            if(req.body.role == "Design"){
+                                                                sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ?, updated = 1 WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
+                                                                    if(err){
+                                                                        console.log(err)
+                                                                        res.status(401)
+                                                                    }
+                                                                })
+                                                            }else{
+                                                                sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
+                                                                    if(err){
+                                                                        console.log(err)
+                                                                        res.status(401)
+                                                                    }
+                                                                })
+                                                            }
+                                                        }
+                                                    })
+                                                    
+                                                }else{
+                                                    sql.query("INSERT INTO special_instruments(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, p3_diameter_id, rating_id, end_preparation_id, description_iso, bolt_type_id, bolt_longitude, instruments_description_drawing_id, instruments_description_filename, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [new_specials[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, bolt_type_id, new_specials[i].bolt_longitude, drawing_id, filename, new_specials[i].comments], (err, results) =>{
+                                                        if(err){
+                                                            console.log(err)
+                                                            res.status(401)
+                                                        }
+                                                    })
                                                 }
-                                            })
-                                        }   
+                                            }
+                                        }
+                                           
                                     })
                                 })
                                                          
@@ -153,7 +264,7 @@ const submitSpecials = async(req, res) =>{
 }
 
 const downloadSpecialsByProject = async(req, res) =>{
-    sql.query("SELECT tag, spec_inlet, p1bore_inlet, rating_inlet, flg_inlet, bolt_longitude_inlet, spec_outlet, p2bore_outlet, rating_outlet, flg_outlet, bolt_longitude_outlet, h1, a, b, ready_load_date, ready_e3d_date, updated_at, comments, ready_load, ready_e3d, updated FROM psvs_full_view WHERE project_id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT tag, spec, p1bore, p2bore, p3bore, rating, end_preparation, description_iso, type, bolt_longitude, code, revision, ready_load_date, ready_e3d_date, comments, ready_load, ready_e3d, updated FROM special_instruments_full_view WHERE project_id = ?", [req.params.project_id], (err, results) =>{
         if(!results[0]){
             res.send({rows: []}).status(200)
         }else{
@@ -164,7 +275,7 @@ const downloadSpecialsByProject = async(req, res) =>{
 
 const specialsReadye3d = (req, res) =>{
     let currentDate = new Date()
-    sql.query("UPDATE psvs SET ready_e3d = 1, ready_e3d_date = ? WHERE id = ?", [currentDate, req.body.id], (err, results) =>{
+    sql.query("UPDATE special_instruments SET ready_e3d = 1, ready_e3d_date = ? WHERE id = ?", [currentDate, req.body.id], (err, results) =>{
         if(err){
             res.status(401)
             console.log(err)
@@ -175,7 +286,7 @@ const specialsReadye3d = (req, res) =>{
 }
 
 const specialsCancelreadye3d = (req, res) =>{
-    sql.query("UPDATE psvs SET ready_e3d = 0, ready_e3d_date = ? WHERE id = ?", [null, req.body.id], (err, results) =>{
+    sql.query("UPDATE special_instruments SET ready_e3d = 0, ready_e3d_date = ? WHERE id = ?", [null, req.body.id], (err, results) =>{
         if(err){
             res.status(401)
             console.log(error)
@@ -186,7 +297,7 @@ const specialsCancelreadye3d = (req, res) =>{
 }
 
 const deleteSpecials = (req, res) =>{
-    sql.query("UPDATE psvs SET updated = 2 WHERE id = ?", [req.body.id], (err, results) =>{
+    sql.query("UPDATE special_instruments SET updated = 2 WHERE id = ?", [req.body.id], (err, results) =>{
         if(err){
             res.status(401)
             console.log(err)
@@ -197,7 +308,7 @@ const deleteSpecials = (req, res) =>{
 }
 
 const excludeSpecials = (req, res) =>{
-    sql.query("UPDATE psvs SET ready_e3d = 2 WHERE id = ?", [req.body.id], (err, results) =>{
+    sql.query("UPDATE special_instruments SET ready_e3d = 2 WHERE id = ?", [req.body.id], (err, results) =>{
         if(err){
             res.status(401)
             console.log(err)
@@ -213,9 +324,144 @@ const specialsDrawingCodes = (req, res) =>{
             res.status(401)
             console.log(err)
         }else{
-            res.send({success: 1}).status(200)
+            res.send({rows: results}).status(200)
         }
     })
+}
+
+const uploadSpecialsDrawing = async(req, res) =>{
+    try{   
+        await drawingMiddleware.uploadFileMiddleware(req, res);
+        sql.query("SELECT * FROM special_instruments_description_drawings WHERE filename = ?", req.file.filename, (err, results)=>{
+            if(!results[0]){
+                res.send({error: true}).status(401)
+            }else{
+                if (req.file == undefined) {
+                    return res.status(400).send({ message: "Please upload a file!" });
+                }
+
+                    res.status(200).send({
+                    message: "Uploaded the file successfully: " + req.file.originalname,
+                });
+            }
+        })
+    }catch(err){
+        res.json({
+            error: true,
+          }).status(401);
+    }
+    
+}
+
+const uploadSpecialsDrawingDB = (req, res) =>{
+    const code = req.body.description_plan_code
+    const fileName = req.body.filename
+
+    sql.query("UPDATE special_instruments_description_drawings SET filename = ? WHERE code = ?", [fileName, code], (err, results)=>{
+        if(err){
+            console.log(err)
+            res.status(401)
+        }else{
+            sql.query("SELECT id FROM special_instruments_description_drawings WHERE code = ?", [code], (err, results) =>{
+                if(!results[0]){
+                    res.status(401)
+                }else{
+                    const drawing_id = results[0].id
+                    sql.query("UPDATE special_instruments SET instruments_description_filename = ? WHERE instruments_description_drawing_id = ?", [fileName, drawing_id], (err, results)=>{
+                        if(err){
+                            console.log(err)
+                            res.status(401)
+                        }else{
+                            res.send({success: 1}).status(200)
+                        }
+                    })
+                }
+            })
+
+            
+        }
+    })                  
+                
+}
+
+const updateSpecialsDrawing = async(req, res) =>{
+    try{   
+        await drawingMiddleware.updateFileMiddleware(req, res);
+        sql.query("SELECT * FROM special_instruments_description_drawings WHERE filename = ?", req.file.filename, (err, results)=>{
+            if(!results[0]){
+                res.send({error: true}).status(401)
+            }else{
+                if (req.file == undefined) {
+                    return res.status(400).send({ message: "Please upload a file!" });
+                }
+
+                    res.status(200).send({
+                    message: "Uploaded the file successfully: " + req.file.originalname,
+                });
+            }
+        })
+    }catch(err){
+        res.json({
+            error: true,
+          }).status(401);
+    }
+}
+
+const updateSpecialsDrawingDB = async(req, res) =>{
+    const description_plan_code = req.body.description_plan_code
+    const fileName = req.body.fileName
+    const email = req.body.email
+    sql.query("SELECT id FROM special_instruments_description_drawings WHERE code = ?", [description_plan_code],(err, results) =>{
+        if(!results[0]){
+            res.status(401)
+        }else{
+            const drawing_id = results[0].id
+            sql.query("UPDATE special_instruments SET updated = 1, ready_e3d = 0 WHERE instruments_description_drawing_id = ? AND ready_e3d = 1", [drawing_id], (err, results)=>{
+                if(err){
+                    console.log(err)
+                    res.status(401)
+                }else{
+                    sql.query("UPDATE special_instruments_description_drawings SET revision = revision+1 WHERE code = ?", [description_plan_code], (err, results)=>{
+                        if(err){
+                            console.log(err)
+                            res.status(401)
+                        }else{
+                            console.log("Drawing updated in db")
+                            sql.query("SELECT revision FROM special_instruments_description_drawings WHERE code = ?", [description_plan_code], (err, results)=>{
+                                if(!results[0]){
+                                    res.status(401)
+                                }else{
+                                    const revision = results[0].revision
+                                    const extension = path.extname(fileName)
+                                    const bakFileName = fileName.split('.').slice(0, -1) + "-" + revision + extension
+                                    fs.copyFile('./app/storage/specials/drawings/'+ fileName, './app/storage/specials/drawings/bak/'+ bakFileName, (err) => {
+                                        if (err) throw err;
+                                        console.log('Created drawing backup');
+                                      });
+
+                                    res.send({success: 1}).status(200)                                    
+                                }
+                            })
+                            
+                        }
+                    })
+                }
+            })
+        }
+    })        
+}
+
+const getSpecialsDrawing = async(req, res) =>{
+    const fileName = req.params.fileName
+    
+    let path = './app/storage/specials/drawings/' + fileName;
+    if (fs.existsSync(path)) {
+        var file = fs.createReadStream(path);
+        file.pipe(res);
+    }else{
+        console.log(fileName)
+    }
+    
 }
 
 module.exports = {
@@ -227,5 +473,10 @@ module.exports = {
     deleteSpecials,
     excludeSpecials,
     specialsCancelreadye3d,
-    specialsDrawingCodes
+    specialsDrawingCodes,
+    uploadSpecialsDrawing,
+    uploadSpecialsDrawingDB,
+    updateSpecialsDrawing,
+    updateSpecialsDrawingDB,
+    getSpecialsDrawing
 }
