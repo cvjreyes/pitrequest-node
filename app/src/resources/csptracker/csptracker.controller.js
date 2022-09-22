@@ -1086,7 +1086,7 @@ const getBoltTypes = async(req, res) =>{
 }
 
 const getPids = async(req, res) =>{
-    sql.query("SELECT pids.id, pid, name FROM pids LEFT JOIN projects ON pids.project_id = projects.id", (err, results)=>{
+    sql.query("SELECT pids.id, pid, `name` FROM pids LEFT JOIN projects ON pids.project_id = projects.id", (err, results)=>{
         res.send({rows:results}).status(200)
     })
 }
@@ -1122,7 +1122,7 @@ const submitRatings = async(req, res) =>{
         }
         
     }
-    res.status(200)
+    res.send({success:true}).status(200)
 }
 
 const submitSpecs = async(req, res) =>{
@@ -1156,7 +1156,7 @@ const submitSpecs = async(req, res) =>{
         }
         
     }
-    res.status(200)
+    res.send({success:true}).status(200)
 }
 
 const submitEndPreparations = async(req, res) =>{
@@ -1190,7 +1190,7 @@ const submitEndPreparations = async(req, res) =>{
         }
         
     }
-    res.status(200)
+    res.send({success: true}).status(200)
 }
 
 const submitBoltTypes = async(req, res) =>{
@@ -1224,7 +1224,7 @@ const submitBoltTypes = async(req, res) =>{
         }
         
     }
-    res.status(200)
+    res.send({success: true}).status(200)
 }
 
 const submitPids = async(req, res) =>{
