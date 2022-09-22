@@ -84,33 +84,29 @@ const submitExpansionJoins = async(req, res) =>{
                                     sql.query("SELECT ready_e3d FROM expansion_joins WHERE id = ?", [new_expansion_joins[i].id], (err, results)=>{
                                         if(results[0].ready_e3d == 0){
                                             if(req.body.role == "Design"){
-                                                sql.query("UPDATE expansion_joins SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, ident = NULL, face_to_face = ?, bolt_type_id = NULL, comments = ? WHERE id = ?", [new_expansion_joins[i].tag, spec_id, p1bore_id, p2bore_id, rating_id, end_preparation_id, new_expansion_joins[i].description_iso, new_expansion_joins[i].face_to_face, new_expansion_joins[i].comments, new_expansion_joins[i].id], (err, results) =>{
+                                                sql.query("UPDATE expansion_joins SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, face_to_face = ?, bolt_type_id = NULL, comments = ? WHERE id = ?", [new_expansion_joins[i].tag, spec_id, p1bore_id, p2bore_id, rating_id, end_preparation_id, new_expansion_joins[i].description_iso, new_expansion_joins[i].face_to_face, new_expansion_joins[i].comments, new_expansion_joins[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }else{
-                                                sql.query("UPDATE expansion_joins SET ident = ?, bolt_type_id = ? WHERE id = ?", [new_expansion_joins[i].ident, bolt_type_id, new_expansion_joins[i].id], (err, results) =>{
+                                                sql.query("UPDATE expansion_joins bolt_type_id = ? WHERE id = ?", [bolt_type_id, new_expansion_joins[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }
                                         }else if(results[0].ready_e3d == 1){
                                             if(req.body.role == "Design"){
-                                                sql.query("UPDATE expansion_joins SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, ident = NULL, face_to_face = ?, bolt_type_id = NULL, comments = ?, updated = 1 WHERE id = ?", [new_expansion_joins[i].tag, spec_id, p1bore_id, p2bore_id, rating_id, end_preparation_id, new_expansion_joins[i].description_iso, new_expansion_joins[i].face_to_face, new_expansion_joins[i].comments, new_expansion_joins[i].id], (err, results) =>{
+                                                sql.query("UPDATE expansion_joins SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, face_to_face = ?, bolt_type_id = NULL, comments = ?, updated = 1 WHERE id = ?", [new_expansion_joins[i].tag, spec_id, p1bore_id, p2bore_id, rating_id, end_preparation_id, new_expansion_joins[i].description_iso, new_expansion_joins[i].face_to_face, new_expansion_joins[i].comments, new_expansion_joins[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }else{
-                                                sql.query("UPDATE expansion_joins SET ident = ?, bolt_type_id = ?, updated = 1 WHERE id = ?", [new_expansion_joins[i].ident, bolt_type_id, new_expansion_joins[i].id], (err, results) =>{
+                                                sql.query("UPDATE expansion_joins SET bolt_type_id = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_expansion_joins[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }
@@ -121,7 +117,6 @@ const submitExpansionJoins = async(req, res) =>{
                                     sql.query("INSERT INTO expansion_joins(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, rating_id, end_preparation_id, description_iso, face_to_face, comments) VALUES(?,?,?,?,?,?,?,?,?,?)", [new_expansion_joins[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, rating_id, end_preparation_id, new_expansion_joins[i].description_iso, new_expansion_joins[i].face_to_face, new_expansion_joins[i].comments], (err, results) =>{
                                         if(err){
                                             console.log(err)
-                                            res.status(401)
                                         }
                                     })
                                 }   
@@ -142,7 +137,7 @@ const submitExpansionJoins = async(req, res) =>{
 }
 
 const downloadExpansionJoinsByProject = async(req, res) =>{
-    sql.query("SELECT tag, spec, p1bore, p2bore, rating, end_preparation, description_iso, ident, face_to_face, bolt_type, comments, ready_e3d_date, updated_at, comments, ready_load, ready_e3d, updated FROM expansion_joins_full_view WHERE project_id = ?", [req.params.project_id], (err, results) =>{
+    sql.query("SELECT tag, spec, p1bore, p2bore, rating, end_preparation, description_iso, face_to_face, bolt_type, comments, ready_e3d_date, updated_at, comments, ready_load, ready_e3d, updated FROM expansion_joins_full_view WHERE project_id = ?", [req.params.project_id], (err, results) =>{
         if(!results[0]){
             res.send({rows: []}).status(200)
         }else{

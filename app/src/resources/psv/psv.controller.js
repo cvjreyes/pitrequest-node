@@ -96,14 +96,12 @@ const submitPSV = async(req, res) =>{
                                                         sql.query("UPDATE psvs SET tag = ?, spec_inlet_id = ?, p1bore_inlet_id = ?, rating_inlet_id = ?, flg_inlet_id = NULL, bolt_longitude_inlet = NULL, spec_outlet_id = ?, p2bore_outlet_id = ?, rating_outlet_id = ?, flg_outlet_id = NULL, bolt_longitude_outlet = NULL, h1 = ?, a = ?, b = ?, comments = ? WHERE id = ?", [new_psvs[i].tag, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, new_psvs[i].h1, new_psvs[i].a, new_psvs[i].b, new_psvs[i].comments, new_psvs[i].id], (err, results) =>{
                                                             if(err){
                                                                 console.log(err)
-                                                                res.status(401)
                                                             }
                                                         })
                                                     }else{
                                                         sql.query("UPDATE psvs SET flg_inlet_id = ?, bolt_longitude_inlet = ?, flg_outlet_id = ?, bolt_longitude_outlet = ? WHERE id = ?", [flg_inlet_id, new_psvs[i].bolt_longitude_inlet, flg_outlet_id, new_psvs[i].bolt_longitude_outlet, new_psvs[i].id], (err, results) =>{
                                                             if(err){
                                                                 console.log(err)
-                                                                res.status(401)
                                                             }
                                                         })
                                                     }
@@ -112,14 +110,12 @@ const submitPSV = async(req, res) =>{
                                                         sql.query("UPDATE psvs SET tag = ?, spec_inlet_id = ?, p1bore_inlet_id = ?, rating_inlet_id = ?, flg_inlet_id = NULL, bolt_longitude_inlet = NULL, spec_outlet_id = ?, p2bore_outlet_id = ?, rating_outlet_id = ?, flg_outlet_id = NULL, bolt_longitude_outlet = NULL, h1 = ?, a = ?, b = ?, comments = ?, updated = 1 WHERE id = ?", [new_psvs[i].tag, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, new_psvs[i].h1, new_psvs[i].a, new_psvs[i].b, new_psvs[i].comments, new_psvs[i].id], (err, results) =>{
                                                             if(err){
                                                                 console.log(err)
-                                                                res.status(401)
                                                             }
                                                         })
                                                     }else{
                                                         sql.query("UPDATE psvs SET flg_inlet_id = ?, bolt_longitude_inlet = ?, flg_outlet_id = ?, bolt_longitude_outlet = ?, updated = 1 WHERE id = ?", [flg_inlet_id, new_psvs[i].bolt_longitude_inlet, flg_outlet_id, new_psvs[i].bolt_longitude_outlet, new_psvs[i].id], (err, results) =>{
                                                             if(err){
                                                                 console.log(err)
-                                                                res.status(401)
                                                             }
                                                         })
                                                     }
@@ -130,7 +126,6 @@ const submitPSV = async(req, res) =>{
                                             sql.query("INSERT INTO psvs(tag, project_id, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, h1, a, b, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", [new_psvs[i].tag, req.body.project_id, spec_inlet_id, p1bore_inlet_id, rating_inlet_id, spec_outlet_id, p2bore_outlet_id, rating_outlet_id, new_psvs[i].h1, new_psvs[i].a, new_psvs[i].b, new_psvs[i].comments], (err, results) =>{
                                                 if(err){
                                                     console.log(err)
-                                                    res.status(401)
                                                 }
                                             })
                                         }   

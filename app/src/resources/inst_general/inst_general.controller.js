@@ -93,14 +93,12 @@ const submitInstGeneral = async(req, res) =>{
                                                 sql.query("UPDATE insts_generic SET spec_id = ?, instrument_types_id = ?, pcon_id = ?, from_diameter_id = ?, to_diameter_id = ?, flg_con_id = NULL, comments = ? WHERE id = ?", [spec_id, inst_type_id, pcons_id, from_id, to_id, new_insts[i].comments, new_insts[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }else{
                                                 sql.query("UPDATE insts_generic SET spec_id = ?, instrument_types_id = ?, pcon_id = ?, from_diameter_id = ?, to_diameter_id = ?, flg_con_id = ?, comments = ? WHERE id = ?", [spec_id, inst_type_id, pcons_id, from_id, to_id, bolt_id, new_insts[i].comments, new_insts[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }
@@ -109,14 +107,12 @@ const submitInstGeneral = async(req, res) =>{
                                                 sql.query("UPDATE insts_generic SET spec_id = ?, instrument_types_id = ?, pcon_id = ?, from_diameter_id = ?, to_diameter_id = ?, flg_con_id = NULL, comments = ?, updated = 1 WHERE id = ?", [spec_id, inst_type_id, pcons_id, from_id, to_id,  new_insts[i].comments, new_insts[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }else{
                                                 sql.query("UPDATE insts_generic SET spec_id = ?, instrument_types_id = ?, pcon_id = ?, from_diameter_id = ?, to_diameter_id = ?, flg_con_id = ?, comments = ?, updated = 1 WHERE id = ?", [spec_id, inst_type_id, pcons_id, from_id, to_id, bolt_id, new_insts[i].comments, new_insts[i].id], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }
@@ -127,7 +123,6 @@ const submitInstGeneral = async(req, res) =>{
                                     sql.query("INSERT INTO insts_generic(spec_id, instrument_types_id, pcon_id, from_diameter_id, to_diameter_id, flg_con_id, comments, project_id) VALUES(?,?,?,?,?,?,?,?)", [spec_id, inst_type_id, pcons_id, from_id, to_id, bolt_id, new_insts[i].comments, req.body.project_id], (err, results) =>{
                                         if(err){
                                             console.log(err)
-                                            res.status(401)
                                         }
                                     })
                                 }                            

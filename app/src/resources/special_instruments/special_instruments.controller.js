@@ -101,14 +101,12 @@ const submitSpecials = async(req, res) =>{
                                                             sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ? WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
                                                                 if(err){
                                                                     console.log(err)
-                                                                    res.status(401)
                                                                 }
                                                             })
                                                         }else{
                                                             sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ? WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
                                                                 if(err){
                                                                     console.log(err)
-                                                                    res.status(401)
                                                                 }
                                                             })
                                                         }
@@ -117,14 +115,12 @@ const submitSpecials = async(req, res) =>{
                                                             sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ?, updated = 1 WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
                                                                 if(err){
                                                                     console.log(err)
-                                                                    res.status(401)
                                                                 }
                                                             })
                                                         }else{
                                                             sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
                                                                 if(err){
                                                                     console.log(err)
-                                                                    res.status(401)
                                                                 }
                                                             })
                                                         }
@@ -135,7 +131,6 @@ const submitSpecials = async(req, res) =>{
                                                 sql.query("INSERT INTO special_instruments(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, p3_diameter_id, rating_id, end_preparation_id, description_iso, bolt_type_id, bolt_longitude, instruments_description_drawing_id, instruments_description_filename, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [new_specials[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, bolt_type_id, new_specials[i].bolt_longitude, drawing_id, filename, new_specials[i].comments], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }
                                                 })
                                             }
@@ -144,7 +139,6 @@ const submitSpecials = async(req, res) =>{
                                                 sql.query("INSERT INTO special_instruments_description_drawings(code) VALUES(?)", [new_specials[i].code], (err, results) =>{
                                                     if(err){
                                                         console.log(err)
-                                                        res.status(401)
                                                     }else{
                                                         sql.query("SELECT id FROM special_instruments_description_drawings WHERE code = ?", [new_specials[i].code], (err, results) =>{                                             
                                                             drawing_id = results[0].id
@@ -155,14 +149,12 @@ const submitSpecials = async(req, res) =>{
                                                                             sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ? WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
                                                                                 if(err){
                                                                                     console.log(err)
-                                                                                    res.status(401)
                                                                                 }
                                                                             })
                                                                         }else{
                                                                             sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ? WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
                                                                                 if(err){
                                                                                     console.log(err)
-                                                                                    res.status(401)
                                                                                 }
                                                                             })
                                                                         }
@@ -171,14 +163,12 @@ const submitSpecials = async(req, res) =>{
                                                                             sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ?, updated = 1 WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
                                                                                 if(err){
                                                                                     console.log(err)
-                                                                                    res.status(401)
                                                                                 }
                                                                             })
                                                                         }else{
                                                                             sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
                                                                                 if(err){
                                                                                     console.log(err)
-                                                                                    res.status(401)
                                                                                 }
                                                                             })
                                                                         }
@@ -189,7 +179,6 @@ const submitSpecials = async(req, res) =>{
                                                                 sql.query("INSERT INTO special_instruments(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, p3_diameter_id, rating_id, end_preparation_id, description_iso, bolt_type_id, bolt_longitude, instruments_description_drawing_id, instruments_description_filename, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [new_specials[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, bolt_type_id, new_specials[i].bolt_longitude, drawing_id, filename, new_specials[i].comments], (err, results) =>{
                                                                     if(err){
                                                                         console.log(err)
-                                                                        res.status(401)
                                                                     }
                                                                 })
                                                             }
@@ -204,14 +193,12 @@ const submitSpecials = async(req, res) =>{
                                                                 sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ? WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
                                                                     if(err){
                                                                         console.log(err)
-                                                                        res.status(401)
                                                                     }
                                                                 })
                                                             }else{
                                                                 sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ? WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
                                                                     if(err){
                                                                         console.log(err)
-                                                                        res.status(401)
                                                                     }
                                                                 })
                                                             }
@@ -220,14 +207,12 @@ const submitSpecials = async(req, res) =>{
                                                                 sql.query("UPDATE special_instruments SET tag = ?, spec_id = ?, p1_diameter_id = ?, p2_diameter_id = ?, p3_diameter_id = ?, rating_id = ?, end_preparation_id = ?, description_iso = ?, bolt_type_id = NULL, bolt_longitude = NULL, instruments_description_drawing_id = ?, instruments_description_filename = ?, comments = ?, updated = 1 WHERE id = ?", [new_specials[i].tag, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, drawing_id, filename, new_specials[i].comments, new_specials[i].id], (err, results) =>{
                                                                     if(err){
                                                                         console.log(err)
-                                                                        res.status(401)
                                                                     }
                                                                 })
                                                             }else{
                                                                 sql.query("UPDATE special_instruments SET bolt_type_id = ?, bolt_longitude = ?, updated = 1 WHERE id = ?", [bolt_type_id, new_specials[i].bolt_longitude, new_specials[i].id], (err, results) =>{
                                                                     if(err){
                                                                         console.log(err)
-                                                                        res.status(401)
                                                                     }
                                                                 })
                                                             }
@@ -238,7 +223,6 @@ const submitSpecials = async(req, res) =>{
                                                     sql.query("INSERT INTO special_instruments(tag, project_id, spec_id, p1_diameter_id, p2_diameter_id, p3_diameter_id, rating_id, end_preparation_id, description_iso, bolt_type_id, bolt_longitude, instruments_description_drawing_id, instruments_description_filename, comments) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [new_specials[i].tag, req.body.project_id, spec_id, p1bore_id, p2bore_id, p3bore_id, rating_id, end_preparation_id, new_specials[i].description_iso, bolt_type_id, new_specials[i].bolt_longitude, drawing_id, filename, new_specials[i].comments], (err, results) =>{
                                                         if(err){
                                                             console.log(err)
-                                                            res.status(401)
                                                         }
                                                     })
                                                 }
