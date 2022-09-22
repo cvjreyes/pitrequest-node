@@ -3,6 +3,10 @@ module.exports = app => {
 
     app.post("/qtracker/requestNWC", qtracker.requestNWC)
     app.post("/qtracker/requestNVN", qtracker.requestNVN)
+    app.post("/qtracker/requestDIS", qtracker.requestDIS)
+    app.post("/qtracker/requestPER", qtracker.requestPER)
+    app.post("/qtracker/requestMOD", qtracker.requestMOD)
+    app.post("/qtracker/requestDSO", qtracker.requestDSO)
     app.post("/qtracker/requestNRI", qtracker.requestNRI)
     app.post("/qtracker/requestNRB", qtracker.requestNRB)
     app.post("/qtracker/requestNRIDS", qtracker.requestNRIDS)
@@ -14,6 +18,10 @@ module.exports = app => {
     
     app.get("/qtracker/getNWC", qtracker.getNWC)
     app.get("/qtracker/getNVN", qtracker.getNVN)
+    app.get("/qtracker/getDIS", qtracker.getDIS)
+    app.get("/qtracker/getPER", qtracker.getPER)
+    app.get("/qtracker/getMOD", qtracker.getMOD)
+    app.get("/qtracker/getDSO", qtracker.getDSO)
     app.get("/qtracker/getNRI", qtracker.getNRI)
     app.get("/qtracker/getNRB", qtracker.getNRB)
     app.get("/qtracker/getNRIDS", qtracker.getNRIDS)
@@ -22,6 +30,10 @@ module.exports = app => {
 
     app.get("/qtracker/getNWCByProjects/:email", qtracker.getNWCByProjects)
     app.get("/qtracker/getNVNByProjects/:email", qtracker.getNVNByProjects)
+    app.get("/qtracker/getDISByProjects/:email", qtracker.getDISByProjects)
+    app.get("/qtracker/getPERByProjects/:email", qtracker.getPERByProjects)
+    app.get("/qtracker/getMODByProjects/:email", qtracker.getMODByProjects)
+    app.get("/qtracker/getDSOByProjects/:email", qtracker.getDSOByProjects)
     app.get("/qtracker/getNRIByProjects/:email", qtracker.getNRIByProjects)
     app.get("/qtracker/getNRBByProjects/:email", qtracker.getNRBByProjects)
     app.get("/qtracker/getNRIDSByProjects/:email", qtracker.getNRIDSByProjects)
