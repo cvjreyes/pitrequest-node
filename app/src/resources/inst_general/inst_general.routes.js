@@ -11,6 +11,8 @@ let routes = (app) => {
   router.get("/instStatusDataByProject/:project_id", inst_general.instStatusDataByProject)
   router.get("/downloadInstsGeneralByProject/:project_id", inst_general.downloadInstsGeneralByProject)
   router.get("/getSpecsByAllProjects", inst_general.getSpecsByAllProjects)
+  router.get("/downloadAllInstrumentsHolds", inst_general.downloadAllInstrumentsHolds)
+
 
   router.post("/submitInstGeneral", inst_general.submitInstGeneral)
   router.post("/instReadyE3d", inst_general.instReadyE3d)

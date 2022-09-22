@@ -399,6 +399,16 @@ const submitPIDsByProject = async(req, res) =>{
     res.send({success: true}).status(200)
 }
 
+const downloadAllInstrumentsHolds = async(req, res) =>{
+    sql.query("SELECT * FROM instruments_holds_view", [req.params.project_id], (err, results) =>{
+        if(!results[0]){
+            res.send({rows: []}).status(200)
+        }else{
+            res.json(JSON.stringify(results)).status(200)
+        }
+    })
+}
+
 module.exports = {
     getInstGeneralByProject,
     getSpecsByProject,
@@ -416,5 +426,6 @@ module.exports = {
     submitPcons,
     getSpecsByAllProjects,
     submitSpecsByProject,
-    submitPIDsByProject
+    submitPIDsByProject,
+    downloadAllInstrumentsHolds
 }
