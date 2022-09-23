@@ -428,7 +428,7 @@ const changeAdmin = async(req, res) =>{
                                                 }
                                             });
         
-                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN ISOMETRIC DRAWING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN ORTOGRAPHIC DRAWING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
         
                                             sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                                 if(!results[0]){
@@ -481,7 +481,7 @@ const changeAdmin = async(req, res) =>{
                                                 }
                                             });
         
-                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN ISOMETRIC DRAWING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN CITRIX</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
         
                                             sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                                 if(!results[0]){
