@@ -13,7 +13,6 @@ let routes = (app) => {
   router.get("/getSpecsByAllProjects", inst_general.getSpecsByAllProjects)
   router.get("/downloadAllInstrumentsHolds", inst_general.downloadAllInstrumentsHolds)
 
-
   router.post("/submitInstGeneral", inst_general.submitInstGeneral)
   router.post("/instReadyE3d", inst_general.instReadyE3d)
   router.post("/instCancelReadyE3d", inst_general.instCancelReadyE3d)

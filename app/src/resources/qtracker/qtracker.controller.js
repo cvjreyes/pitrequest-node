@@ -1051,535 +1051,567 @@ const updateStatus = async(req, res) =>{
     const type = req.body.type
     const email = req.body.email
     const project = req.body.project
-
     if(type == "NWC"){
-        sql.query("UPDATE qtracker_not_working_component SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_not_working_component SET status = ? WHERE incidence_number = ? AND hours IS NOT NULL AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.send({success: false}).status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_not_working_component SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            let observation = null
-                                            sql.query("SELECT observations FROM qtracker_not_working_component WHERE incidence_number = ?", [incidence_number], (err, results)=>{
-                                                if(results[0]){
-                                                    observation = results[0].observations
-                                                    console.log(observation)
-                                                    var transporter = nodemailer.createTransport({
-                                                        host: "es001vs0064",
-                                                        port: 25,
-                                                        secure: false,
-                                                        auth: {
-                                                            user: "3DTracker@technipenergies.com",
-                                                            pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_not_working_component SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                let observation = null
+                                                sql.query("SELECT observations FROM qtracker_not_working_component WHERE incidence_number = ?", [incidence_number], (err, results)=>{
+                                                    if(results[0]){
+                                                        observation = results[0].observations
+                                                        console.log(observation)
+                                                        var transporter = nodemailer.createTransport({
+                                                            host: "es001vs0064",
+                                                            port: 25,
+                                                            secure: false,
+                                                            auth: {
+                                                                user: "3DTracker@technipenergies.com",
+                                                                pass: "1Q2w3e4r..24" 
+                                                            }
+                                                        });
+            
+                                                        if(reciever_email == "super@user.com"){
+                                                            reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                         }
-                                                    });
-        
-                                                    if(reciever_email == "super@user.com"){
-                                                        reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                            
+                                                        let html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                                                        if(observation != null){
+                                                            html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p> <p> Observations: " + observation  
+                                                        }
+                                                        transporter.sendMail({
+                                                        from: '3DTracker@technipenergies.com',
+                                                        to: reciever_email,
+                                                        subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                        text: incidence_number,
+                                                        
+                                                        html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
                                                     }
-                        
-                                                    let html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                                                    if(observation != null){
-                                                        html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p> <p> Observations: " + observation  
-                                                    }
-                                                    transporter.sendMail({
-                                                    from: '3DTracker@technipenergies.com',
-                                                    to: reciever_email,
-                                                    subject: project + ' ' + incidence_number + " has been " + new_status,
-                                                    text: incidence_number,
-                                                    
-                                                    html: html_message
-                                                    }, (err, info) => {
-                                                        console.log(info.envelope);
-                                                        console.log(info.messageId);
-                                                    });
-                                                }
-                                            })
-                                            
+                                                })
+                                                
+                                            }
                                         }
-                                    }
-                                })
-
-                            }
+                                    })
+    
+                                }
+                            })
                         })
+    
                     })
-
-                })
-                
-                res.send({success: true}).status(200)
+                    
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
             }
+                
         })
     }else if(type == "NVN"){
-        sql.query("UPDATE qtracker_not_view_in_navis SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_not_view_in_navis SET status = ? WHERE incidence_number = ? AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_not_view_in_navis.user_id FROM qtracker_not_view_in_navis JOIN users ON qtracker_not_view_in_navis.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_not_view_in_navis SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_not_view_in_navis.user_id FROM qtracker_not_view_in_navis JOIN users ON qtracker_not_view_in_navis.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_not_view_in_navis SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                var transporter = nodemailer.createTransport({
+                                                    host: "es001vs0064",
+                                                    port: 25,
+                                                    secure: false,
+                                                    auth: {
+                                                        user: "3DTracker@technipenergies.com",
+                                                        pass: "1Q2w3e4r..24" 
+                                                    }
+                                                });
+
+                                                if(reciever_email == "super@user.com"){
+                                                    reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
-                                            });
-
-                                            if(reciever_email == "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                    
+                                                const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                    
+                                                transporter.sendMail({
+                                                from: '3DTracker@technipenergies.com"',
+                                                to: reciever_email,
+                                                subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                text: incidence_number,
+                                                
+                                                html: html_message
+                                                }, (err, info) => {
+                                                    console.log(info.envelope);
+                                                    console.log(info.messageId);
+                                                });
                                             }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com"',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
-                                            
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         })
-                    })
 
-                })
-            
-                res.send({success: true}).status(200)
+                    })
+                
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
+                
             }
         })
     }else if(type == "NRI"){
-        sql.query("UPDATE qtracker_not_reporting_isometric SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_not_reporting_isometric SET status = ? WHERE incidence_number = ? AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_not_reporting_isometric.user_id FROM qtracker_not_reporting_isometric JOIN users ON qtracker_not_reporting_isometric.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.send({success: false}).status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_not_reporting_isometric SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_not_reporting_isometric.user_id FROM qtracker_not_reporting_isometric JOIN users ON qtracker_not_reporting_isometric.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_not_reporting_isometric SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                var transporter = nodemailer.createTransport({
+                                                    host: "es001vs0064",
+                                                    port: 25,
+                                                    secure: false,
+                                                    auth: {
+                                                        user: "3DTracker@technipenergies.com",
+                                                        pass: "1Q2w3e4r..24" 
+                                                    }
+                                                });
+    
+                                                if(reciever_email == "super@user.com"){
+                                                    reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
-                                            });
-
-                                            if(reciever_email == "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                    
+                                                const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                    
+                                                transporter.sendMail({
+                                                from: '3DTracker@technipenergies.com',
+                                                to: reciever_email,
+                                                subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                text: incidence_number,
+                                                
+                                                html: html_message
+                                                }, (err, info) => {
+                                                    console.log(info.envelope);
+                                                    console.log(info.messageId);
+                                                });
                                             }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
-                                            
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         })
+    
                     })
-
-                })
-            
-                res.send({success: true}).status(200)
+                
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
+                
             }
         })
     }else if(type == "NRB"){
-        sql.query("UPDATE qtracker_not_reporting_bfile SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_not_reporting_bfile SET status = ? WHERE incidence_number = ? AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_not_reporting_bfile.user_id FROM qtracker_not_reporting_bfile JOIN users ON qtracker_not_reporting_bfile.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.send({success: false}).status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_not_reporting_bfile SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_not_reporting_bfile.user_id FROM qtracker_not_reporting_bfile JOIN users ON qtracker_not_reporting_bfile.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_not_reporting_bfile SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                var transporter = nodemailer.createTransport({
+                                                    host: "es001vs0064",
+                                                    port: 25,
+                                                    secure: false,
+                                                    auth: {
+                                                        user: "3DTracker@technipenergies.com",
+                                                        pass: "1Q2w3e4r..24" 
+                                                    }
+                                                });
+
+                                                if(reciever_email == "super@user.com"){
+                                                    reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
-                                            });
-
-                                            if(reciever_email == "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                    
+                                                const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                    
+                                                transporter.sendMail({
+                                                from: '3DTracker@technipenergies.com',
+                                                to: reciever_email,
+                                                subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                text: incidence_number,
+                                                
+                                                html: html_message
+                                                }, (err, info) => {
+                                                    console.log(info.envelope);
+                                                    console.log(info.messageId);
+                                                });
                                             }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
-                                            
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         })
-                    })
 
-                })
+                    })
+                
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
             }
-            res.send({success: true}).status(200)
             
         })
     }else if(type == "NRIDS"){
-        sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET status = ? WHERE incidence_number = ? AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_not_reporting_ifc_dgn_step.user_id FROM qtracker_not_reporting_ifc_dgn_step JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id WHERE incidence_number = ?SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.send({success: false}).status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_not_reporting_ifc_dgn_step.user_id FROM qtracker_not_reporting_ifc_dgn_step JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id WHERE incidence_number = ?SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_not_reporting_ifc_dgn_step SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                var transporter = nodemailer.createTransport({
+                                                    host: "es001vs0064",
+                                                    port: 25,
+                                                    secure: false,
+                                                    auth: {
+                                                        user: "3DTracker@technipenergies.com",
+                                                        pass: "1Q2w3e4r..24" 
+                                                    }
+                                                });
+    
+                                                if(reciever_email == "super@user.com"){
+                                                    reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
-                                            });
-
-                                            if(reciever_email == "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                    
+                                                const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                    
+                                                transporter.sendMail({
+                                                from: '3DTracker@technipenergies.com',
+                                                to: reciever_email,
+                                                subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                text: incidence_number,
+                                                
+                                                html: html_message
+                                                }, (err, info) => {
+                                                    console.log(info.envelope);
+                                                    console.log(info.messageId);
+                                                });
                                             }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
-                                            
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         })
+    
                     })
-
-                })
-            
-            res.send({success: true}).status(200)
+                
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
             }
         })
     }else if(type == "RP"){
-        sql.query("UPDATE qtracker_request_report SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_request_report SET status = ? WHERE incidence_number = ? AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_request_report.user_id FROM qtracker_request_report JOIN users ON qtracker_request_report.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.send({success: false}).status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_request_report SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_request_report.user_id FROM qtracker_request_report JOIN users ON qtracker_request_report.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_request_report SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                var transporter = nodemailer.createTransport({
+                                                    host: "es001vs0064",
+                                                    port: 25,
+                                                    secure: false,
+                                                    auth: {
+                                                        user: "3DTracker@technipenergies.com",
+                                                        pass: "1Q2w3e4r..24" 
+                                                    }
+                                                });
+    
+                                                if(reciever_email == "super@user.com"){
+                                                    reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
-                                            });
-
-                                            if(reciever_email == "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                    
+                                                const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                    
+                                                transporter.sendMail({
+                                                from: '3DTracker@technipenergies.com',
+                                                to: reciever_email,
+                                                subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                text: incidence_number,
+                                                
+                                                html: html_message
+                                                }, (err, info) => {
+                                                    console.log(info.envelope);
+                                                    console.log(info.messageId);
+                                                });
                                             }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
-                                            
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         })
+    
                     })
-
-                })
-            
-            res.send({success: true}).status(200)
+                
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
+                
             }
         })
     }else if(type == "IS"){
-        sql.query("UPDATE qtracker_isometric_sending SET status = ? WHERE incidence_number = ?", [status_id, incidence_number], (err, results) =>{
+        sql.query("UPDATE qtracker_isometric_sending SET status = ? WHERE incidence_number = ? AND((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
                 res.send({success: false}).status(401)
             }else{
-                let new_status
-                if(status_id == 0){
-                    new_status = "set to pending"
-                }else if (status_id == 1){
-                    new_status = "set to in progress"
-                }else if(status_id == 2){
-                    new_status = "set to ready"
-                }else if(status_id == 3){
-                    new_status = "rejected"
-                }else{
-                    new_status = "sent to materials"
-                }
-                sql.query("SELECT users.email, qtracker_isometric_sending.user_id FROM qtracker_isometric_sending JOIN users ON qtracker_isometric_sending.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
-                    const reciever = results[0].user_id
-                    let reciever_email = results[0].email
-                    sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
-                        const username = results[0].name
-                        sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
-                            if(err){
-                                console.log(err)
-                                res.send({success: false}).status(401)
-                            }else{
-                                let currentDate = new Date()
-                                sql.query("UPDATE qtracker_isometric_sending SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
-                                    if(err){
-                                        console.log(err)
-                                        res.send({success: false}).status(401)
-                                    }else{
-                                        if(process.env.NODE_MAILING == "1"){
-                                            var transporter = nodemailer.createTransport({
-                                                host: "es001vs0064",
-                                                port: 25,
-                                                secure: false,
-                                                auth: {
-                                                    user: "3DTracker@technipenergies.com",
-                                                    pass: "1Q2w3e4r..24" 
+                if(results.affectedRows > 0){
+                    let new_status
+                    if(status_id == 0){
+                        new_status = "set to pending"
+                    }else if (status_id == 1){
+                        new_status = "set to in progress"
+                    }else if(status_id == 2){
+                        new_status = "set to ready"
+                    }else if(status_id == 3){
+                        new_status = "rejected"
+                    }else{
+                        new_status = "sent to materials"
+                    }
+                    sql.query("SELECT users.email, qtracker_isometric_sending.user_id FROM qtracker_isometric_sending JOIN users ON qtracker_isometric_sending.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                        const reciever = results[0].user_id
+                        let reciever_email = results[0].email
+                        sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
+                            const username = results[0].name
+                            sql.query("INSERT INTO notifications(users_id, text) VALUES(?,?)", [reciever, "Your request " + incidence_number + " has been " + new_status + " by " + username + "."], (err, results)=>{
+                                if(err){
+                                    console.log(err)
+                                    res.send({success: false}).status(401)
+                                }else{
+                                    let currentDate = new Date()
+                                    sql.query("UPDATE qtracker_isometric_sending SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
+                                        if(err){
+                                            console.log(err)
+                                            res.send({success: false}).status(401)
+                                        }else{
+                                            if(process.env.NODE_MAILING == "1"){
+                                                var transporter = nodemailer.createTransport({
+                                                    host: "es001vs0064",
+                                                    port: 25,
+                                                    secure: false,
+                                                    auth: {
+                                                        user: "3DTracker@technipenergies.com",
+                                                        pass: "1Q2w3e4r..24" 
+                                                    }
+                                                });
+    
+                                                if(reciever_email == "super@user.com"){
+                                                    reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
                                                 }
-                                            });
-
-                                            if(reciever_email == "super@user.com"){
-                                                reciever_email = "alex.dominguez-ortega@external.technipenergies.com"
+                    
+                                                const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
+                    
+                                                transporter.sendMail({
+                                                from: '3DTracker@technipenergies.com',
+                                                to: reciever_email,
+                                                subject: project + ' ' + incidence_number + " has been " + new_status,
+                                                text: incidence_number,
+                                                
+                                                html: html_message
+                                                }, (err, info) => {
+                                                    console.log(info.envelope);
+                                                    console.log(info.messageId);
+                                                });
                                             }
-                
-                                            const html_message = "<p>" + username + " has " + new_status + " your incidence with code " + incidence_number + ".</p>"
-                
-                                            transporter.sendMail({
-                                            from: '3DTracker@technipenergies.com',
-                                            to: reciever_email,
-                                            subject: project + ' ' + incidence_number + " has been " + new_status,
-                                            text: incidence_number,
-                                            
-                                            html: html_message
-                                            }, (err, info) => {
-                                                console.log(info.envelope);
-                                                console.log(info.messageId);
-                                            });
                                         }
-                                    }
-                                })
-                            }
+                                    })
+                                }
+                            })
                         })
+    
                     })
-
-                })
-            
-            res.send({success: true}).status(200)
+                    
+                    res.send({success: true}).status(200)
+                }else{
+                    res.send({success: true, notReady: true}).status(200)
+                }
+                
             }
         })
     }else{

@@ -583,6 +583,7 @@ const createProject = async(req, res) =>{
 
                                 }
                             }
+                            sql.query("INSERT INTO model_has_projects(project_id, user_id) VALUES (?,?), (?,?)", [project_id, 2, project_id, 4])
                             res.json({success: 1}).status(200)
                         }
                     })
