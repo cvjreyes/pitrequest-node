@@ -72,6 +72,7 @@ const changeAdmin = async(req, res) =>{
     const admin = req.body.admin
     const incidence_number = req.body.incidence_number
     const type = req.body.type
+    console.log(req.body)
     sql.query("SELECT users.id, users.email FROM users WHERE name = ?", [admin], (err, results)=>{
         if(!results[0]){
             console.log("No admin")
@@ -163,6 +164,324 @@ const changeAdmin = async(req, res) =>{
                                             });
         
                                             const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN NAVIS</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
+                    }else if(type == "DIS"){
+                        sql.query("UPDATE qtracker_general SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_general.*, projects.name as project, users.name as user, users.email FROM qtracker_general JOIN projects ON qtracker_general.project_id = projects.id JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN DRAWING/ISOSTYLE</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
+                    }else if(type == "PER"){
+                        sql.query("UPDATE qtracker_general SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_general.*, projects.name as project, users.name as user, users.email FROM qtracker_general JOIN projects ON qtracker_general.project_id = projects.id JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN PERMISSIONS</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
+                    }else if(type == "MOD"){
+                        sql.query("UPDATE qtracker_general SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_general.*, projects.name as project, users.name as user, users.email FROM qtracker_general JOIN projects ON qtracker_general.project_id = projects.id JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN MODELING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
+                    }else if(type == "DSO"){
+                        sql.query("UPDATE qtracker_general SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_general.*, projects.name as project, users.name as user, users.email FROM qtracker_general JOIN projects ON qtracker_general.project_id = projects.id JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN ISOMETRIC DRAWING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
+                    }else if(type == "DOR"){
+                        sql.query("UPDATE qtracker_general SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_general.*, projects.name as project, users.name as user, users.email FROM qtracker_general JOIN projects ON qtracker_general.project_id = projects.id JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN ISOMETRIC DRAWING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
+        
+                                            sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
+                                                if(!results[0]){
+                                                    console.log("No mail")
+                                                }else{
+                                                        transporter.sendMail({
+                                                            from: '3DTracker@technipenergies.com',
+                                                            to: admin_email,
+                                                            subject: "The administrator " + current_admin + " has asigned the incidence " + incidence_number + " to you",
+                                                            text: incidence_number,
+                                                            
+                                                            html: html_message
+                                                        }, (err, info) => {
+                                                            console.log(info.envelope);
+                                                            console.log(info.messageId);
+                                                        });
+                                                    
+                                                }
+                                            })
+        
+                                            }
+                                        
+                                        })
+                                    
+                                    
+                                }
+                                res.send({success:true}).status(200)
+                            }
+                        })
+                    }else if(type == "CIT"){
+                        sql.query("UPDATE qtracker_general SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
+                            if(err){
+                                console.log(err)
+                                res.status(401)
+                            }else{
+                                if(process.env.NODE_MAILING == "1"){
+                                    sql.query("SELECT qtracker_general.*, projects.name as project, users.name as user, users.email FROM qtracker_general JOIN projects ON qtracker_general.project_id = projects.id JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
+                                        if(!results[0]){
+                                            console.log("No admin mail")
+                                        }else{
+                                            const incidence = results[0]
+                                            // create reusable transporter object using the default SMTP transport
+                                            var transporter = nodemailer.createTransport({
+                                                host: "es001vs0064",
+                                                port: 25,
+                                                secure: false,
+                                                auth: {
+                                                    user: "3DTracker@technipenergies.com",
+                                                    pass: "1Q2w3e4r..24"    
+                                                }
+                                            });
+        
+                                            const html_message = "<p><b>INCIDENCE</b> NOT VIEW IN ISOMETRIC DRAWING</p> <p><b>REFERENCE</b> " + incidence_number + " </p> <p><b>PROJECT</b> " + incidence.project + " </p> <p><b>USER</b> " + incidence.email + "</p> <p><b>NAME</b> " + incidence.name + "</p> <p><b>DESCRIPTION</b> " + incidence.description + "</p>"
         
                                             sql.query("SELECT email FROM users WHERE id = ?", [admin_id], (err, results) =>{
                                                 if(!results[0]){
