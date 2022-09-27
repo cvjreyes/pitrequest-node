@@ -395,7 +395,7 @@ exports.manageRoles = (req, res) =>{
           }
         })
       }
-      res.send({success: 1}).status(201)
+      res.send({success: true}).status(200)
     }
   })
 }
