@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const special_instruments = require("../special_instruments/special_instruments.controller");
 
+//Funciona exactamente igual que expansion joins solo que con otros campos a excepcion del drawing, que funciona como sptracker
 let routes = (app) => {
   router.get("/getSpecialsByProject/:project_id", special_instruments.getSpecialsByProject)
   router.get("/specialsStatusDataByProject/:project_id", special_instruments.specialsStatusDataByProject)

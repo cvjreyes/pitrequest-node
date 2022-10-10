@@ -39,8 +39,8 @@ const cancelReadye3d = (req, res) =>{
 
 const uploadDrawing = async(req, res) =>{
     try{   
-        await drawingMiddleware.uploadFileMiddleware(req, res);
-        sql.query("SELECT * FROM csptracker_description_drawings WHERE filename = ?", req.file.filename, (err, results)=>{
+        await drawingMiddleware.uploadFileMiddleware(req, res); //Enviamos el dibujo al middleware
+        sql.query("SELECT * FROM csptracker_description_drawings WHERE filename = ?", req.file.filename, (err, results)=>{ //Comrpobamos que se ha subido
             if(!results[0]){
                 res.send({error: true}).status(401)
             }else{
@@ -66,28 +66,28 @@ const uploadDrawingDB = (req, res) =>{
     const fileName = req.body.filename
 
 
-    sql.query("INSERT INTO csptracker_description_drawings(filename) VALUES(?)", fileName , (err, results)=>{
+    sql.query("INSERT INTO csptracker_description_drawings(filename) VALUES(?)", fileName , (err, results)=>{ //Creamos el nuevo dibujo en la bd
         if(err){
             console.log(err)
             res.status(401)
         }else{
-            sql.query("SELECT id FROM csptracker_description_drawings WHERE filename = ?", fileName, (err, results)=>{
+            sql.query("SELECT id FROM csptracker_description_drawings WHERE filename = ?", fileName, (err, results)=>{ //Cogemos el id del dibujo
                 if(!results){
                     console.log("No existe en drawings")
                 }else{
                     const id = results[0].id
-                    sql.query("UPDATE csptracker_description_plans SET description_drawings_id = ? WHERE description_plan_code = ?", [id, code], (err, results)=>{
+                    sql.query("UPDATE csptracker_description_plans SET description_drawings_id = ? WHERE description_plan_code = ?", [id, code], (err, results)=>{ //Actualizamos el dibujo
                         if(err){
                             console.log(err)
                             res.status(401)
                         }else{
-                            sql.query("SELECT id FROM csptracker_description_plans WHERE description_plan_code = ?", code, (err, results)=>{
-                                if(!results){
+                            sql.query("SELECT id FROM csptracker_description_plans WHERE description_plan_code = ?", code, (err, results)=>{ //Cogemos el id del plano
+                                if(!results){ 
                                     console.log(err)
                                     res.status(401)
                                 }else{
                                     const plane_id = results[0].id
-                                    sql.query("UPDATE csptracker SET description_drawings_id = ? WHERE description_plans_id = ?", [id, plane_id], (err, results)=>{
+                                    sql.query("UPDATE csptracker SET description_drawings_id = ? WHERE description_plans_id = ?", [id, plane_id], (err, results)=>{ //Actualizamos el plano
                                         if(err){
                                             console.log(err)
                                             res.status(401)
@@ -279,6 +279,7 @@ const getListsData = async(req, res) =>{
     let pidData = []
     let projectsData = []
 
+    //Hacemos un select a todas las tablas y enviamos la informacion
     sql.query("SELECT description_plan_code FROM csptracker_description_plans", (err, results)=>{
         if(err){
             res.status(401)
@@ -372,9 +373,9 @@ const getListsData = async(req, res) =>{
 }
 
 const submitCSP = async(req, res) =>{
-    const rows = req.body.rows
+    const rows = req.body.rows //Filas de csptracker
     const email = req.body.email
-    await sql.query("TRUNCATE csptracker_bak", (err, results)=>{
+    await sql.query("TRUNCATE csptracker_bak", (err, results)=>{ //Hacemos un backup
         if(err){
             console.log(err)
             res.status(401)
@@ -385,9 +386,9 @@ const submitCSP = async(req, res) =>{
                 }
             })
 
-            for(let i = 0; i < rows.length; i++){  
+            for(let i = 0; i < rows.length; i++){  //Por cada fila
                 
-                if(rows[i].tag == null || rows[i].tag == ""){
+                if(rows[i].tag == null || rows[i].tag == ""){  //Si se elimina el tag es que se elimina el sp
                     sql.query("DELETE FROM csptracker WHERE id = ?", [rows[i].id], (err, results)=>{
                         if(err){
                             console.log(err)
@@ -402,9 +403,9 @@ const submitCSP = async(req, res) =>{
                     if(rows[i].ready_e3d == ''){
                         rows[i].ready_e3d = null
                     }
-                    if(rows[i].tag != "" && rows[i].tag != null){ 
+                    if(rows[i].tag != "" && rows[i].tag != null){ //Si el tag no es nulo
                         let drawing_code = null
-                        sql.query("SELECT id FROM csptracker_description_plans WHERE description_plan_code = ?", rows[i].description_plan_code, (err, results)=>{
+                        sql.query("SELECT id FROM csptracker_description_plans WHERE description_plan_code = ?", rows[i].description_plan_code, (err, results)=>{ //Cogemos el id del plano
                             if(!results){
                                 results = []
                                 results[0] = null
@@ -412,15 +413,15 @@ const submitCSP = async(req, res) =>{
                             if(!results){
                                 results[0] = null
                             }
-                            if(!results[0] && rows[i].description_plan_code != null && rows[i].description_plan_code != ""){
-                                sql.query("INSERT INTO csptracker_description_plans(description_plan_code) VALUES(?)", rows[i].description_plan_code, (err, results)=>{
+                            if(!results[0] && rows[i].description_plan_code != null && rows[i].description_plan_code != ""){ //Si no existia el plano
+                                sql.query("INSERT INTO csptracker_description_plans(description_plan_code) VALUES(?)", rows[i].description_plan_code, (err, results)=>{ //Insertamos el id del nuevo plano 
                                     if(err){
                                         console.log(err)
                                         res.status(401)
                                     }
                                 })
                             }
-                            sql.query("SELECT id FROM csptracker_description_plans WHERE description_plan_code = ?", rows[i].description_plan_code, (err, results)=>{
+                            sql.query("SELECT id FROM csptracker_description_plans WHERE description_plan_code = ?", rows[i].description_plan_code, (err, results)=>{ //Cogemos el id del plano
                                 if(!results){
                                     results = []
                                     results[0] = null
@@ -433,8 +434,8 @@ const submitCSP = async(req, res) =>{
                                     rows[i].description_plan_code = results[0].id
                                 }
                                 
-                                if(process.env.NODE_MMDN == "1"){
-                                    sql.query("SELECT id FROM diameters WHERE nps = ?", rows[i].p1diameter_nps, (err, results)=>{
+                                if(process.env.NODE_MMDN == "1"){ //Si el pryecto esta en pulgadas
+                                    sql.query("SELECT id FROM diameters WHERE nps = ?", rows[i].p1diameter_nps, (err, results)=>{ //Cogemos el id del diametro 1
                                         if(!results){
                                             results = []
                                             results[0] = null
@@ -444,7 +445,7 @@ const submitCSP = async(req, res) =>{
                                         }else{
                                             rows[i].p1diameter_nps = results[0].id 
                                         }
-                                        sql.query("SELECT id FROM diameters WHERE nps = ?", rows[i].p2diameter_nps, (err, results)=>{
+                                        sql.query("SELECT id FROM diameters WHERE nps = ?", rows[i].p2diameter_nps, (err, results)=>{ //Cogemos el id del diametro 2
                                             if(!results){
                                                 results = []
                                                 results[0] = null
@@ -454,7 +455,7 @@ const submitCSP = async(req, res) =>{
                                             }else{
                                                 rows[i].p2diameter_nps = results[0].id
                                             } 
-                                            sql.query("SELECT id FROM diameters WHERE nps = ?", rows[i].p3diameter_nps, (err, results)=>{
+                                            sql.query("SELECT id FROM diameters WHERE nps = ?", rows[i].p3diameter_nps, (err, results)=>{ //Cogemos el id del diametro 3
                                                 if(!results){
                                                     results = []
                                                     results[0] = null
@@ -464,7 +465,7 @@ const submitCSP = async(req, res) =>{
                                                 }else{
                                                     rows[i].p3diameter_nps = results[0].id 
                                                 }
-                                                sql.query("SELECT id FROM csptracker_ratings WHERE rating = ?", rows[i].rating, (err, results)=>{
+                                                sql.query("SELECT id FROM csptracker_ratings WHERE rating = ?", rows[i].rating, (err, results)=>{ //Cogemos el id del rating
                                                     if(!results){
                                                         results = []
                                                         results[0] = null
@@ -474,7 +475,7 @@ const submitCSP = async(req, res) =>{
                                                     }else{
                                                         rows[i].rating = results[0].id
                                                     }
-                                                    sql.query("SELECT id FROM csptracker_specs WHERE spec = ?", rows[i].spec, (err, results)=>{
+                                                    sql.query("SELECT id FROM csptracker_specs WHERE spec = ?", rows[i].spec, (err, results)=>{ //Cogemos el id del spec
                                                         if(!results){
                                                             results = []
                                                             results[0] = null
@@ -484,7 +485,7 @@ const submitCSP = async(req, res) =>{
                                                         }else{
                                                             rows[i].spec = results[0].id
                                                         }
-                                                        sql.query("SELECT id FROM csptracker_end_preparations WHERE state = ?", rows[i].end_preparation, (err, results)=>{
+                                                        sql.query("SELECT id FROM csptracker_end_preparations WHERE state = ?", rows[i].end_preparation, (err, results)=>{ //Cogemos el id del end preparation
                                                             if(!results){
                                                                 results = []
                                                                 results[0] = null
@@ -494,7 +495,7 @@ const submitCSP = async(req, res) =>{
                                                             }else{
                                                                 rows[i].end_preparation = results[0].id
                                                             }
-                                                            sql.query("SELECT id FROM csptracker_bolt_types WHERE type = ?", rows[i].bolt_type, (err, results)=>{
+                                                            sql.query("SELECT id FROM csptracker_bolt_types WHERE type = ?", rows[i].bolt_type, (err, results)=>{  //Cogemos el id del bolt type
                                                                 if(!results){
                                                                     results = []
                                                                     results[0] = null
@@ -505,7 +506,7 @@ const submitCSP = async(req, res) =>{
                                                                     rows[i].bolt_type = results[0].id
                                                                 }
                                                                 let description_drawings_id = 0
-                                                                sql.query("SELECT description_drawings_id FROM csptracker_description_plans WHERE description_plan_code = ?", drawing_code, (err, results)=>{
+                                                                sql.query("SELECT description_drawings_id FROM csptracker_description_plans WHERE description_plan_code = ?", drawing_code, (err, results)=>{  //Cogemos el id del dibujo
                                                                     if(!results){
                                                                         results = []
                                                                         results[0] = null
@@ -516,7 +517,7 @@ const submitCSP = async(req, res) =>{
                                                                         description_drawings_id = results[0].description_drawings_id
                                                                     }
                                                                     let project_id = 0
-                                                                    sql.query("SELECT id FROM projects WHERE name = ?", rows[i].project, (err, results)=>{
+                                                                    sql.query("SELECT id FROM projects WHERE name = ?", rows[i].project, (err, results)=>{  //Cogemos el id del proyecto
                                                                         if(!results){
                                                                             results = []
                                                                             results[0] = null
@@ -526,10 +527,11 @@ const submitCSP = async(req, res) =>{
                                                                         }else{
                                                                             project_id = results[0].id
                                                                         }
-                                                                        if(rows[i].id){
+                                                                        if(rows[i].id){ //Si la fila ya existia, es decir, se esta actualizando
                                                                             
                                                                             sql.query("SELECT updated_at FROM csptracker WHERE id = ?", rows[i].id, (err, results)=>{
                                                                                 const updated_at = results[0].updated_at
+                                                                                //Actualizamos la fila con los datos recogidos hasta ahora
                                                                                 sql.query("UPDATE csptracker SET tag = ?, project_id = ?, quantity = ?, description = ?, description_plans_id = ?, description_iso = ?, ident = ?, p1_diameters_id = ?, p2_diameters_id = ?, p3_diameters_id = ?, ratings_id = ?, specs_id = ?, type = ?, end_preparations_id = ?, description_drawings_id = ?, face_to_face = ?, bolt_types_id = ?, ready_e3d = ?, comments = ?, pid = ?, line_id = ?, requisition = ?, equipnozz = ?, utility_station = ? WHERE id = ?", [rows[i].tag, project_id, rows[i].quantity, rows[i].description, rows[i].description_plan_code, rows[i].description_iso, rows[i].ident, rows[i].p1diameter_nps, rows[i].p2diameter_nps, rows[i].p3diameter_nps, rows[i].rating, rows[i].spec, rows[i].type, rows[i].end_preparation, description_drawings_id,rows[i].face_to_face, rows[i].bolt_type, rows[i].ready_e3d, rows[i].comments, rows[i].pid, rows[i].line_id, rows[i].requisition, rows[i].equipnozz, rows[i].utility_station, rows[i].id], (err, results)=>{
                                                                                     if(err){
                                                                                         console.log(err)
@@ -537,7 +539,7 @@ const submitCSP = async(req, res) =>{
                                                                                     }else{
                                                                                         sql.query("SELECT updated_at FROM csptracker WHERE id = ?", [rows[i].id], (err, results)=>{
                                                                                             if(results[0].updated_at - updated_at != 0){
-                                                                                                sql.query("UPDATE csptracker SET updated = 1, ready_e3d = 0 WHERE id = ?", [rows[i].id], (err, results)=>{
+                                                                                                sql.query("UPDATE csptracker SET updated = 1, ready_e3d = 0 WHERE id = ?", [rows[i].id], (err, results)=>{ //Marcamos el espacial como updated
                                                                                                     if(err){
                                                                                                         console.log(err)
                                                                                                         res.status(401)
@@ -572,7 +574,7 @@ const submitCSP = async(req, res) =>{
                                                                                     }
                                                                                 })
                                                                             })
-                                                                        }else{
+                                                                        }else{ //Si la linea no existia se crea una nueva
                                                                             sql.query("INSERT INTO csptracker(tag, project_id, quantity, description, description_plans_id, description_iso, ident, p1_diameters_id, p2_diameters_id, p3_diameters_id, ratings_id, specs_id, type, end_preparations_id, description_drawings_id, face_to_face, bolt_types_id, ready_e3d, comments, pid, line_id, requisition, equipnozz, utility_station) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",  [rows[i].tag, project_id, rows[i].quantity, rows[i].description, rows[i].description_plan_code, rows[i].description_iso, rows[i].ident, rows[i].p1diameter_nps, rows[i].p2diameter_nps, rows[i].p3diameter_nps, rows[i].rating, rows[i].spec, rows[i].type, rows[i].end_preparation, description_drawings_id,rows[i].face_to_face, rows[i].bolt_type, rows[i].ready_e3d, rows[i].comments, rows[i].pid, rows[i].line_id, rows[i].requisition, rows[i].equipnozz, rows[i].utility_station, rows[i].id], (err, results)=>{
                                                                                 if(err){
                                                                                     console.log(err)
@@ -597,7 +599,7 @@ const submitCSP = async(req, res) =>{
                                         })
                                         
                                     })
-                                }else{
+                                }else{ //Si el proyecto esta en milimetros es lo mismo pero con mm
                                     sql.query("SELECT id FROM diameters WHERE dn = ?", rows[i].p1diameter_dn, (err, results)=>{
                                         if(!results){
                                             results = []
@@ -784,10 +786,10 @@ const update_ready_load = async(req, res) =>{
             res.status(401)
         }else{
             const csp_rows = results
-            for(let i = 0; i < csp_rows.length; i++){
-                if(csp_rows[i].ready_load == 1 && !csp_rows[i].ready_load_date){
+            for(let i = 0; i < csp_rows.length; i++){ //Por cada fila del sptracker
+                if(csp_rows[i].ready_load == 1 && !csp_rows[i].ready_load_date){ //Si el registro se acaba de actualizar
                     let date = new Date()
-                    sql.query("UPDATE csptracker SET ready_load_date = ? WHERE id = ?", [date, csp_rows[i].id], (err, results)=>{
+                    sql.query("UPDATE csptracker SET ready_load_date = ? WHERE id = ?", [date, csp_rows[i].id], (err, results)=>{ //Marcamos como actualizado
                         if(err){
                             console.log(err)
                             res.status(401)
@@ -830,10 +832,10 @@ const requestSP = async(req, res) =>{
     const email = req.body.user
     const project = req.body.project
     console.log(project)
-    sql.query("SELECT id FROM csptracker WHERE tag = ?", [sptag], (err, results)=>{
+    sql.query("SELECT id FROM csptracker WHERE tag = ?", [sptag], (err, results)=>{ //Cogemos el tag del id
         if(typeof results === 'undefined' || !results[0]){
             let project_id = 0
-            sql.query("SELECT id FROM projects WHERE name = ?", project, (err, results)=>{
+            sql.query("SELECT id FROM projects WHERE name = ?", project, (err, results)=>{ //Cogemos el id del proyecto
                 if(!results){
                     results = []
                     results[0] = null
@@ -843,18 +845,18 @@ const requestSP = async(req, res) =>{
                 }else{
                     project_id = results[0].id
                 }
-                sql.query("SELECT id FROM roles WHERE name = Materials)", (err, results1)=>{
+                sql.query("SELECT id FROM roles WHERE name = Materials)", (err, results1)=>{ 
                     const mat_id = 7
-                    sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [mat_id], (err, results)=>{
+                    sql.query("SELECT DISTINCT model_id FROM model_has_roles WHERE role_id = ?", [mat_id], (err, results)=>{ //Cogemos todos los usuarios de materiales
                         if(!results[0]){
                             console.log("No users with materials role")
                             res.status(401)
                         }else{
                             const recievers = results
-                            sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{
+                            sql.query("SELECT id, name FROM users WHERE email = ?", [email],(err, results)=>{ //Por cada usuario con rol materiales
                                 const sender = results[0].id
                                 const sender_name = results[0].name
-                                for(let i = 0; i < recievers.length; i++){
+                                for(let i = 0; i < recievers.length; i++){ //Creamos la notificacion de request para que la vean en una bandeja
                                     sql.query("INSERT INTO csptracker_requests(tag, pid, sptag, sent_user_id, rec_user_id, project_id) VALUES(?,?,?,?,?,?)", [tag, pid, sptag, sender, recievers[i].model_id, project_id], (err, results)=>{
                                         if(err){
                                             console.log(err)
@@ -891,8 +893,9 @@ const requestSP = async(req, res) =>{
 
 const csptrackerRequests = async(req, res) =>{
     const email = req.params.email
-    sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{
+    sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{ //Cogemos el usuario
         const userid = results[0].id
+        //Cogemos las requests asignadas al usuario
         sql.query("SELECT csptracker_requests.*, projects.name FROM csptracker_requests LEFT JOIN projects ON csptracker_requests.project_id = projects.id WHERE rec_user_id = ? ORDER BY 1 DESC", [userid], (err, results)=>{
             if(err){
                 console.log(err)
@@ -908,8 +911,9 @@ const csptrackerRequests = async(req, res) =>{
 const markAsRead = async(req, res) =>{
     const id = req.body.id
     const email = req.body.user
-    sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{
+    sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{ //Cogemos el usuario
         const userid = results[0].id
+        //Marcamos como leidas las requests asignadas al usuario de esos especiales
         sql.query("UPDATE csptracker_requests SET `read` = 1 WHERE rec_user_id = ? AND id = ?", [userid, id], (err, results)=>{
             if(err){
                 console.log(err)
@@ -921,7 +925,7 @@ const markAsRead = async(req, res) =>{
     })
 }
 
-const markAsUnread = async(req, res) =>{
+const markAsUnread = async(req, res) =>{ //Lo mismo pero al reves
     const id = req.body.id
     const email = req.body.user
     sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{
@@ -937,10 +941,10 @@ const markAsUnread = async(req, res) =>{
     })  
 }
 
-const rejectRequest = async(req, res) =>{
+const rejectRequest = async(req, res) =>{ //Lo mismo 
     const id = req.body.id
     const email = req.body.email
-    sql.query("SELECT * FROM csptracker_requests WHERE id = ? LIMIT 1", [id], (err, results)=>{
+    sql.query("SELECT * FROM csptracker_requests WHERE id = ? LIMIT 1", [id], (err, results)=>{ 
         const sent_user_id = results[0].sent_user_id
         const sptag = results[0].sptag
         if(!results[0]){
@@ -978,7 +982,7 @@ const acceptRequest = async(req, res) =>{
     const id = req.body.id
     const email = req.body.email
     console.log(id, email)
-    sql.query("SELECT * FROM csptracker_requests WHERE id = ? LIMIT 1", [id], (err, results)=>{
+    sql.query("SELECT * FROM csptracker_requests WHERE id = ? LIMIT 1", [id], (err, results)=>{ //Cogemos la request
         const sent_user_id = results[0].sent_user_id
         const sptag = results[0].sptag
         const tag = results[0].tag
@@ -987,19 +991,19 @@ const acceptRequest = async(req, res) =>{
         if(!results[0]){
             res.status(401)
         }else{
-            sql.query("SELECT name FROM users WHERE email = ?", [email], (err, results)=>{
+            sql.query("SELECT name FROM users WHERE email = ?", [email], (err, results)=>{ //Cogemos el usuario
                 let rejector = null
                 if(!results[0]){
 
                 }else{
                     rejector = results[0].name
                 }
-                sql.query("UPDATE csptracker_requests SET `read` = 2 WHERE id = ?", [id], (err, results)=>{
+                sql.query("UPDATE csptracker_requests SET `read` = 2 WHERE id = ?", [id], (err, results)=>{ //Marcamos la request como aceptada
                     if(err){
                         console.log(err)
                         res.status(401)
                     }else{
-                        sql.query("INSERT INTO csptracker(tag, pid, line_id, project_id) VALUES(?,?,?,?)", [sptag, pid, tag,project_id], (err, results)=>{
+                        sql.query("INSERT INTO csptracker(tag, pid, line_id, project_id) VALUES(?,?,?,?)", [sptag, pid, tag,project_id], (err, results)=>{ //Creamos la pieza especial en sptracker con los datos de la request
                             if(err){
                                 console.log(err)
                                 res.status(401)
@@ -1023,13 +1027,13 @@ const acceptRequest = async(req, res) =>{
     
 }
 
-const deleteCSPNotification = async(req, res) =>{
+const deleteCSPNotification = async(req, res) =>{ 
 
     const id = req.body.id
     const email = req.body.user
     sql.query("SELECT id FROM users WHERE email = ?", [email],(err, results)=>{
         const userid = results[0].id
-        sql.query("DELETE FROM csptracker_requests WHERE rec_user_id = ? AND id = ?", [userid, id], (err, results)=>{
+        sql.query("DELETE FROM csptracker_requests WHERE rec_user_id = ? AND id = ?", [userid, id], (err, results)=>{ //Eliminamos la notificacion para el usuario
             if(err){
                 console.log(err)
                 res.status(401)
@@ -1091,26 +1095,27 @@ const getPids = async(req, res) =>{
     })
 }
 
+//Estos submits funcionan todos igual
 const submitRatings = async(req, res) =>{
     const ratings = req.body.rows
     for(let i = 0; i < ratings.length; i++){
-        if(!ratings[i]["Name"] || ratings[i]["Name"] == ""){
-            sql.query("DELETE FROM csptracker_ratings WHERE id = ?", [ratings[i]["id"]], (err, results)=>{
+        if(!ratings[i]["Name"] || ratings[i]["Name"] == ""){ //Si se elimina el registro
+            sql.query("DELETE FROM csptracker_ratings WHERE id = ?", [ratings[i]["id"]], (err, results)=>{ //Lo eliminamos de la bd
                 if(err){
                     console.log(err)
                     res.status(401)
                 }
             })
-        }else{
-            sql.query("SELECT * FROM csptracker_ratings WHERE id = ?", [ratings[i]["id"]], (err, results)=>{
-                if(!results[0]){
-                    sql.query("INSERT INTO csptracker_ratings(rating) VALUES(?)", [ratings[i]["Name"]], (err, results) =>{
+        }else{ //Si no se ha eliminado
+            sql.query("SELECT * FROM csptracker_ratings WHERE id = ?", [ratings[i]["id"]], (err, results)=>{ //Cogemos el id de la pieza
+                if(!results[0]){ //Si no tiene id es nueva
+                    sql.query("INSERT INTO csptracker_ratings(rating) VALUES(?)", [ratings[i]["Name"]], (err, results) =>{ //La creamos
                         if(err){
                             console.log(err)
                             res.status(401)
                         }
                     })
-                }else{
+                }else{ //Si tiene id la actualizamos
                     sql.query("UPDATE csptracker_ratings SET rating = ? WHERE id = ?", [ratings[i]["Name"], ratings[i]["id"]], (err, results) =>{
                         if(err){
                             console.log(err)
@@ -1276,8 +1281,8 @@ const submitPids = async(req, res) =>{
     res.status(200)
 }
 
-const deleteSP = (req, res) =>{
-    sql.query("UPDATE csptracker SET updated = 2 WHERE tag = ?", [req.body.tag], (err, results) =>{
+const deleteSP = (req, res) =>{ 
+    sql.query("UPDATE csptracker SET updated = 2 WHERE tag = ?", [req.body.tag], (err, results) =>{ //Para marcar que un sp esta eliminado lo marcamos poniendo un 2 en updated
         if(err){
             res.status(401)
             console.log(err)
@@ -1288,7 +1293,7 @@ const deleteSP = (req, res) =>{
 }
 
 const excludeSP = (req, res) =>{
-    sql.query("UPDATE csptracker SET ready_e3d = 2 WHERE tag = ?", [req.body.tag], (err, results) =>{
+    sql.query("UPDATE csptracker SET ready_e3d = 2 WHERE tag = ?", [req.body.tag], (err, results) =>{ //Para marcar que un sp esta excluido lo marcamos poniendo un 2 en el tag
         if(err){
             res.status(401)
             console.log(err)
@@ -1305,13 +1310,14 @@ const spStatusData = (req, res) =>{
     let ok_revn = 0
     let excluded = 0
     let deleted = 0
-    sql.query("SELECT ready_load, ready_e3d, updated FROM csptracker", (err, results) =>{
+    sql.query("SELECT ready_load, ready_e3d, updated FROM csptracker", (err, results) =>{ //Get de los campos de estado
         if(!results){
            
         }else if(!results[0]){
            
         }else{
             for(let i = 0; i < results.length; i++){
+                //Logica de sptracker. Pregunta a Miguel sobre la logica si no lo entiendes
                 if(results[i].ready_load == 0 && (results[i].ready_e3d == 0 || !results[i].ready_e3d) && results[i].updated == 0){
                     materials += 1
                 }else if(results[i].ready_load == 1 && (results[i].ready_e3d == 0 || !results[i].ready_e3d)){

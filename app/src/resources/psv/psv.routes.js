@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const psv = require("../psv/psv.controller");
 
+//Funciona exactamente igual que expansion joins solo que con otros campos
 let routes = (app) => {
   router.get("/getPSVByProject/:project_id", psv.getPSVByProject)
   router.get("/psvStatusDataByProject/:project_id", psv.psvStatusDataByProject)

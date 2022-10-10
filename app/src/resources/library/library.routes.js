@@ -5,28 +5,28 @@ const library = require("../library/library.controller");
 let routes = (app) => {
 
   //Getters
-  router.get("/getLibrary", library.getLibrary);
-  router.get("/getProjectTypes", library.getProjectTypes);
-  router.get("/getComponentTypes", library.getComponentTypes);
-  router.get("/getComponentBrands", library.getComponentBrands);
-  router.get("/getComponentCodes", library.getComponentCodes);
-  router.get("/getComponentDisciplines", library.getComponentDisciplines);
-  router.get("/getComponentNames", library.getComponentNames);
-  router.get("/getGroupProjects", library.getGroupProjects);
-  router.get("/getComponentImage/:componentName", library.getComponentImage);
-  router.get("/getComponentRFA/:componentName", library.getComponentRFA)
+  router.get("/getLibrary", library.getLibrary); //Select de todos los datos de la library
+  router.get("/getProjectTypes", library.getProjectTypes); //Tipos de proyecto
+  router.get("/getComponentTypes", library.getComponentTypes); //Tipos de componentes
+  router.get("/getComponentBrands", library.getComponentBrands); //Marcas
+  router.get("/getComponentCodes", library.getComponentCodes); //Codigos
+  router.get("/getComponentDisciplines", library.getComponentDisciplines); //Disciplinas
+  router.get("/getComponentNames", library.getComponentNames); //Nombres de los componentes
+  router.get("/getGroupProjects", library.getGroupProjects); //Proyectos
+  router.get("/getComponentImage/:componentName", library.getComponentImage); //Get de la imagen del componente
+  router.get("/getComponentRFA/:componentName", library.getComponentRFA) //Get del RFA
 
   //Setters
-  router.post("/createComponent", library.createComponent)
-  router.post("/updateComponent", library.updateComponent)
-  router.post("/deleteComponent", library.deleteComponent)
-  router.post("/uploadComponentImage", library.uploadComponentImage)
-  router.post("/uploadComponentRFA", library.uploadComponentRFA)
-  router.post("/addProjectType", library.addProjectType)
-  router.post("/addComponentType", library.addComponentType)
-  router.post("/addComponentBrand", library.addComponentBrand)
-  router.post("/addComponentDiscipline", library.addComponentDiscipline)
-  router.post("/updateFilters", library.updateFilters)
+  router.post("/createComponent", library.createComponent) //Crear un componente
+  router.post("/updateComponent", library.updateComponent) //Actualizar un componente
+  router.post("/deleteComponent", library.deleteComponent) //Eliminar un componente
+  router.post("/uploadComponentImage", library.uploadComponentImage) //Subir la imagen del componente
+  router.post("/uploadComponentRFA", library.uploadComponentRFA) //Subir el RFA de un componente
+  router.post("/addProjectType", library.addProjectType) //Añadir un tipo de proyecto
+  router.post("/addComponentType", library.addComponentType) //Añadir tipo de componente
+  router.post("/addComponentBrand", library.addComponentBrand) //Añadir una marca
+  router.post("/addComponentDiscipline", library.addComponentDiscipline) //Añadir una disciplina
+  router.post("/updateFilters", library.updateFilters) //Actualizar los filtros
   app.use(router);
 
 };

@@ -6,6 +6,8 @@ const fs = require("fs");
 const { resourceLimits } = require("worker_threads");
 const { send } = require("express/lib/response");
 
+
+//Todas las requests funcionan igual pero tienen campos diferentes
 const requestNWC = async(req, res) =>{
     const spref = req.body.spref
     const description = req.body.description
@@ -16,12 +18,12 @@ const requestNWC = async(req, res) =>{
     const carta = req.body.carta
     let user_id = null
 
-    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{
+    sql.query("SELECT code FROM projects WHERE name = ?", [project], (err, results) =>{ //Cogemos el codigo del proyecto 
         if(!results[0]){
             res.status(401)
         }else{
             let ref_code = results[0].code + "-NWC000001"
-            sql.query("SELECT id FROM qtracker_not_working_component ORDER BY id DESC LIMIT 1", (err, results) =>{
+            sql.query("SELECT id FROM qtracker_not_working_component ORDER BY id DESC LIMIT 1", (err, results) =>{ //Cogemos el id de la ultima incidencia
                 if(!results){
                     results = []
                     results[0] = null
@@ -29,22 +31,23 @@ const requestNWC = async(req, res) =>{
                 if(!results[0]){
         
                 }else{
-                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString()
+                    ref_code = ref_code.substring(0, ref_code.length - (results[0].id + 1).toString().length) + (results[0].id + 1).toString() //Creamos el codigo de la nueva incidencia
                 }
-                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{
+                sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results)=>{ //Cogemos el id del usuario
                     if(!results[0]){
                         res.status(401)
                     }else{
                         user_id = results[0].id
-                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{
+                        sql.query("SELECT id, default_admin_id FROM projects WHERE name = ?",  [project], (err, results) =>{ //Cogemos el id del proyecto y del admin
                             const project_id = results[0].id
                             const admin_id = results[0].default_admin_id
+                            //Creamos la incidencia
                             sql.query("INSERT INTO qtracker_not_working_component(incidence_number, project_id, spref, description, user_id, attach, admin_id, priority, carta) VALUES(?,?,?,?,?,?,?,?,?)", [ref_code, project_id, spref, description, user_id, has_attach, admin_id, priority, carta], (err, results) =>{
                                 if(err){
                                     console.log(err)
                                     res.status(401)
                                 }else{
-                                    
+                                    //Enviamos un correo al administrador del proyecto conforme se ha creado la request
                                     if(process.env.NODE_MAILING == "1"){
             
                                         // create reusable transporter object using the default SMTP transport
@@ -1583,6 +1586,7 @@ const existsAttach = async(req, res) =>{
   
   }
 
+  //Selects de las incidencias
 const getNWC = async(req, res) =>{
     sql.query("SELECT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id", (err, results) =>{
         res.json({rows: results}).status(200)
@@ -1668,17 +1672,20 @@ const getIS = async(req, res) =>{
 }
 
 
+//Select de las incidencias por proyecto
 const getNWCByProjects = async(req, res) =>{
     const email = req.params.email
+    //Select de las ids de los proyectos de los que forma parte un usuario
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
             console.log("This user has no projects assigned.")
             res.status(200)
         }else{
             let projects_ids = []
-            for(let i = 0; i < results.length; i++){
+            for(let i = 0; i < results.length; i++){ //Hacemos un array con las ids
                 projects_ids.push(results[i].project_id)
             }
+            //Cogemos las incidencias que forman parte de esos proyectos
             sql.query("SELECT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                 res.json({rows: results})
             })
@@ -1915,7 +1922,8 @@ const updateStatus = async(req, res) =>{
     const type = req.body.type
     const email = req.body.email
     const project = req.body.project
-    if(type == "NWC"){
+    if(type == "NWC"){ //Tambien funciona igual para todos los tipos de incidencias
+        //Actualizamos el estado de la incidencia siempre que no se de el caso de que pase a estar aceptada y no se hayan imputado sus horas
         sql.query("UPDATE qtracker_not_working_component SET status = ? WHERE incidence_number = ? AND hours IS NOT NULL AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
                 console.log(err)
@@ -1934,6 +1942,7 @@ const updateStatus = async(req, res) =>{
                     }else{
                         new_status = "sent to materials"
                     }
+                    //Cogemos el email y el id del usuario que creo la incidencia
                     sql.query("SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
                         let reciever_email = results[0].email
@@ -1945,11 +1954,13 @@ const updateStatus = async(req, res) =>{
                                     res.send({success: false}).status(401)
                                 }else{
                                     let currentDate = new Date()
+                                    //Guardamos la fecha de modificacion
                                     sql.query("UPDATE qtracker_not_working_component SET accept_reject_date = ? WHERE incidence_number = ?", [currentDate, incidence_number], (err, results) =>{
                                         if(err){
                                             console.log(err)
                                             res.send({success: false}).status(401)
                                         }else{
+                                            //Enviamos el correo
                                             if(process.env.NODE_MAILING == "1"){
                                                 let observation = null
                                                 sql.query("SELECT observations FROM qtracker_not_working_component WHERE incidence_number = ?", [incidence_number], (err, results)=>{
@@ -2964,6 +2975,8 @@ const statusData = (req, res) =>{
     let accepted = 0
     let rejected = 0
     let materials = 0
+
+    //Cogemos el estado de todas las incidencias y vamos guardando las sumas en contadores
     sql.query("SELECT `status`, COUNT(*) as qty FROM qtracker_not_working_component GROUP BY `status`", (err, results) =>{
         if(!results){
            

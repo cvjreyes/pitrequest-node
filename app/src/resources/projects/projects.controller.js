@@ -14,7 +14,7 @@ const getProjectsByUser = async(req, res) =>{
                 projects_ids.push(results[i].id)
                 codes.push(results[i].code)
             }
-            
+            //Cogemos por separado las ids y los codigos
             res.send({projects: projects_ids, codes: codes}).status(200)
         }
     })
@@ -35,7 +35,8 @@ const getProjectsByEmail = async(req, res) =>{
 const updateProjects = async(req, res) =>{
     const userid = req.body.userid
     const projects = req.body.projects
-    sql.query("DELETE FROM model_has_projects WHERE user_id = ?", [userid], (err, results)=>{
+    //Actualizamos los proyectos que pertenecen al usuario
+    sql.query("DELETE FROM model_has_projects WHERE user_id = ?", [userid], (err, results)=>{ 
         if(err){
             console.log(err)
             res.status(401)
@@ -73,26 +74,29 @@ const changeAdmin = async(req, res) =>{
     const incidence_number = req.body.incidence_number
     const type = req.body.type
     console.log(req.body)
-    sql.query("SELECT users.id, users.email FROM users WHERE name = ?", [admin], (err, results)=>{
+    sql.query("SELECT users.id, users.email FROM users WHERE name = ?", [admin], (err, results)=>{ //Cogemos el usurio admin nuevo
         if(!results[0]){
             console.log("No admin")
             res.status(200)
         }else{
             const admin_id = results[0].id
             const admin_email = results[0].email
-            sql.query("SELECT `name` FROM users WHERE email = ?", [current_admin_mail], (err, results)=>{
+            sql.query("SELECT `name` FROM users WHERE email = ?", [current_admin_mail], (err, results)=>{ //Cogemos el nombre del admin actual
                 if(!results[0]){
                     console.log("No current admin mail")
                 }else{
                     const current_admin = results[0].name
                     
+                    //Se hace lo mismo para cada tipo de incidencia pero afectando diferentes tablas
                     if(type == "NWC"){
+                        //Actualizamos el admin por el nuevo
                         sql.query("UPDATE qtracker_not_working_component SET admin_id = ? WHERE incidence_number = ?", [admin_id, incidence_number], (err, results)=>{
                             if(err){
                                 console.log(err)
                                 res.status(401)
                             }else{
-                                if(process.env.NODE_MAILING == "1"){
+                                if(process.env.NODE_MAILING == "1"){ 
+                                    //Enviamos un correo al nuevo admin para notificar que se le ha asignado una incidencia
                                     sql.query("SELECT qtracker_not_working_component.*, projects.name as project, users.name as user, users.email FROM qtracker_not_working_component JOIN projects ON qtracker_not_working_component.project_id = projects.id JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number], (err, results) =>{
                                         if(!results[0]){
                                             console.log("No admin mail")
@@ -789,18 +793,19 @@ const getTasks = async(req, res) =>{
             console.log("No tasks created")
             res.json({tasks: null}).status(401)
         }else{
-            let currentTasks = {}
+            let currentTasks = {} //Diccionario donde iremos guardando cada tarea con sus subtareas
             current = null
-            let tasks = []
+            let tasks = [] //array de tareas
             for(let i = 0; i < results.length; i++){
+                //En el diccionario, por cada tarea, guardamos el nombre de la tarea y su id. Lo mismo para cada subtarea
                 if(results[i].task_id == current){
                     currentTasks[results[i].subtask] = results[i].subtask_id
                     currentTasks["software"] = results[i].software
                 }else{
                     current = results[i].task_id
-                    tasks.push(currentTasks)
+                    tasks.push(currentTasks) //Cada vez que se han leido todas las subtareas de una tarea se guarda el diccionario en el array de tareas
                     
-                    currentTasks = {}
+                    currentTasks = {} //Y se vacia para empezar a guardar al siguiente tarea
                     currentTasks[results[i].task] = results[i].task_id
                     currentTasks[results[i].subtask] = results[i].subtask_id
                     currentTasks["software"] = results[i].software
@@ -812,7 +817,7 @@ const getTasks = async(req, res) =>{
     })
 }
 
-const getTasksPopUp = async(req, res) =>{
+const getTasksPopUp = async(req, res) =>{ //Cogemos todos los softwares con sus tareas y subtareas
     sql.query("SELECT softwares.id as software_id, softwares.name as software, tasks.id as task_id, tasks.name as task, subtasks1.id as subtask_id, subtasks1.name as subtask FROM softwares LEFT JOIN tasks ON softwares.id = tasks.software_id LEFT JOIN subtasks1 ON tasks.id = subtasks1.task_id ORDER BY software ASC", (err, results)=>{
         if(!results[0]){
             console.log("No tasks created")
@@ -877,23 +882,24 @@ const createProject = async(req, res) =>{
     const admin = req.body.admin
     const tasks = req.body.tasks
     const hours = req.body.hours
-    sql.query("SELECT id FROM users WHERE name = ?", [admin], (err, results) =>{
+    sql.query("SELECT id FROM users WHERE name = ?", [admin], (err, results) =>{ //Cogemos el usuario que ha creado el usuario
         if(!results[0]){
             res.status(401)
         }else{
             const admin_id = results[0].id
+            //Creamos el proyecto asignando como admin el usuario
             sql.query("INSERT INTO projects(name, code, default_admin_id, sup_estihrs) VALUES(?,?,?,?)", [name, code, admin_id, hours], (err, results)=>{
                 if(err){
                     console.log(err)
                     res.status(401)
                 }else{
-                    sql.query("SELECT id FROM projects WHERE name = ?", [name], (err, results) =>{
+                    sql.query("SELECT id FROM projects WHERE name = ?", [name], (err, results) =>{ //Una vez cread cogemos el id
                         if(!results[0]){
                             res.status(401)
                         }else{
                             const project_id = results[0].id
                             if(tasks){
-                                for(let i = 0; i < tasks.length; i++){
+                                for(let i = 0; i < tasks.length; i++){ //Le asignamos al proyecto cada subtarea
                                     sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, parseInt(tasks[i], 10), admin_id], (err, results) =>{
                                         if(err){
                                             console.log(err)
@@ -972,7 +978,7 @@ const updateHours = async(req, res) =>{
     })
 }
 
-const changeAdminProjectTask = async(req, res) =>{
+const changeAdminProjectTask = async(req, res) =>{ //Cambiar el admin asignado a una tarea funciona igual que cambiar el admin asignado a una incidencia
     const current_admin_mail = req.body.currentAdmin
     const admin = req.body.admin
     const task_id = req.body.task_id
@@ -1086,14 +1092,15 @@ const getAllPTS = async(req, res) =>{
 const submitProjectsChanges = async(req, res) =>{
     const new_nodes = req.body.new_nodes
     const removed_nodes = req.body.removed_nodes
-    for(let i = 0; i < new_nodes.length; i++){
-        sql.query("SELECT id, default_admin_id FROM projects WHERE projects.name = ?", [new_nodes[i].project], (err, results) =>{
+    for(let i = 0; i < new_nodes.length; i++){ //Por cada nuevo nodo
+        sql.query("SELECT id, default_admin_id FROM projects WHERE projects.name = ?", [new_nodes[i].project], (err, results) =>{ //Cogemos el id y admin del proyecto
             if(results[0]){
                 let project_id = results[0].id
                 let admin_id = results[0].default_admin_id
-                sql.query("SELECT id from subtasks1 WHERE name = ?", [new_nodes[i].subtask], (err, results) =>{
+                sql.query("SELECT id from subtasks1 WHERE name = ?", [new_nodes[i].subtask], (err, results) =>{ //Cogemos el id de la subtarea
                     if(results[0]){
                         let subtask_id = results[0].id
+                        //Se lo asignamos al proyecto
                         sql.query("INSERT INTO project_has_tasks(project_id, subtask1_id, admin_id) VALUES(?,?,?)", [project_id, subtask_id, admin_id], (err, results) =>{
                             if(err){
                                 res.send({success: false}).status(401)
@@ -1104,7 +1111,7 @@ const submitProjectsChanges = async(req, res) =>{
             }
         })
     }
-    for(let i = 0; i < removed_nodes.length; i++){
+    for(let i = 0; i < removed_nodes.length; i++){ //Lo mismo pero eliminando en vez de creando
         sql.query("SELECT id, default_admin_id FROM projects WHERE projects.name = ?", [removed_nodes[i].project], (err, results) =>{
             if(results[0]){
                 let project_id = results[0].id
@@ -1139,8 +1146,8 @@ const getSubtaskHours = async(req, res) =>{
 
 const submitTasks = async(req, res) =>{
     const tasks = req.body.rows
-    for(let i = 0; i < tasks.length; i++){
-        if(!tasks[i]["Task"] || tasks[i]["Task"] == "" || !tasks[i]["Software"] || tasks[i]["Software"] == ""){
+    for(let i = 0; i < tasks.length; i++){ //Por cada tarea
+        if(!tasks[i]["Task"] || tasks[i]["Task"] == "" || !tasks[i]["Software"] || tasks[i]["Software"] == ""){ //Si se elimina
           sql.query("DELETE FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
               if(err){
                   console.log(err)
@@ -1148,21 +1155,21 @@ const submitTasks = async(req, res) =>{
               }
           })
         }else{
-            sql.query("SELECT id FROM softwares WHERE name = ?", [tasks[i]["Software"]], (err, results)=>{
+            sql.query("SELECT id FROM softwares WHERE name = ?", [tasks[i]["Software"]], (err, results)=>{ //Cogemos el id del software
                 if(!results[0]){
                     console.log(err)
                     res.send({success: false}).status(401)
                 }else{
                     let software_id = results[0].id
-                    sql.query("SELECT * FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{
-                        if(!results[0]){
-                        sql.query("INSERT INTO tasks(name, software_id) VALUES(?,?)", [tasks[i]["Task"], software_id], (err, results)=>{
+                    sql.query("SELECT * FROM tasks WHERE id = ?", [tasks[i]["id"]], (err, results)=>{ //Cogemos la tarea
+                        if(!results[0]){ //Si no tiene id es que es nueva
+                        sql.query("INSERT INTO tasks(name, software_id) VALUES(?,?)", [tasks[i]["Task"], software_id], (err, results)=>{ //Agregamos la tarea
                             if(err){
                                     console.log(err)
                                     res.send({success: false}).status(401)
                                 }
                             })
-                        }else{
+                        }else{//Si tiene la actualizamos
                             sql.query("UPDATE tasks SET name = ?, software_id = ? WHERE id = ?", [tasks[i]["Task"], software_id, tasks[i]["id"]], (err, results) =>{
                                 if(err){
                                     console.log(err)
@@ -1179,7 +1186,7 @@ const submitTasks = async(req, res) =>{
       res.send({success: 1}).status(200)
 }
 
-const submitSubtasks = async(req, res) =>{
+const submitSubtasks = async(req, res) =>{ //Lo mismo que para submitTasks
     const subtasks = req.body.rows
 
     for(let i = 0; i < subtasks.length; i++){
@@ -1390,19 +1397,19 @@ const createOffer = async(req, res) =>{
     const tasks = req.body.tasks
     const hours = req.body.hours
 
-    sql.query("INSERT INTO offers(name, code, sup_estihrs) VALUES(?,?,?)", [name, code, hours], (err, results)=>{
+    sql.query("INSERT INTO offers(name, code, sup_estihrs) VALUES(?,?,?)", [name, code, hours], (err, results)=>{ //Creamos la oferta
         if(err){
             console.log(err)
             res.status(401)
         }else{
-            sql.query("SELECT id FROM offers WHERE name = ?", [name], (err, results) =>{
+            sql.query("SELECT id FROM offers WHERE name = ?", [name], (err, results) =>{ //Cogemos el id de la oferta
                 if(!results[0]){
                     res.status(401)
                 }else{
                     const offer_id = results[0].id
                     if(tasks){
                         for(let i = 0; i < tasks.length; i++){
-                            sql.query("INSERT INTO offer_has_tasks(offer_id, subtask1_id) VALUES(?,?)", [offer_id, parseInt(tasks[i], 10)], (err, results) =>{
+                            sql.query("INSERT INTO offer_has_tasks(offer_id, subtask1_id) VALUES(?,?)", [offer_id, parseInt(tasks[i], 10)], (err, results) =>{ //Agregamos las tareas
                                 if(err){
                                     console.log(err)
                                 }

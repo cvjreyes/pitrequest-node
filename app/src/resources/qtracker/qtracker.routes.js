@@ -1,6 +1,7 @@
 module.exports = app => {
     const qtracker = require("./qtracker.controller.js");
 
+    //Creacion de incidencias
     app.post("/qtracker/requestNWC", qtracker.requestNWC)
     app.post("/qtracker/requestNVN", qtracker.requestNVN)
     app.post("/qtracker/requestDIS", qtracker.requestDIS)
@@ -14,10 +15,13 @@ module.exports = app => {
     app.post("/qtracker/requestNRIDS", qtracker.requestNRIDS)
     app.post("/qtracker/requestRR", qtracker.requestRR)
     app.post("/qtracker/requestIS", qtracker.requestIS)
+
+    //Subir un attach a la incidencia, comprobar si existe y obtenerlo
     app.post("/qtracker/uploadAttach", qtracker.uploadAttach)
     app.get("/qtracker/existsAttach/:incidence_number", qtracker.existsAttach)
     app.get("/qtracker/getAttach/:fileName", qtracker.getAttach)
     
+    //Select de las incidencias
     app.get("/qtracker/getNWC", qtracker.getNWC)
     app.get("/qtracker/getNVN", qtracker.getNVN)
     app.get("/qtracker/getDIS", qtracker.getDIS)
@@ -32,6 +36,7 @@ module.exports = app => {
     app.get("/qtracker/getRP", qtracker.getRP)
     app.get("/qtracker/getIS", qtracker.getIS)
 
+    //Select de las incidencias por usuario
     app.get("/qtracker/getNWCByProjects/:email", qtracker.getNWCByProjects)
     app.get("/qtracker/getNVNByProjects/:email", qtracker.getNVNByProjects)
     app.get("/qtracker/getDISByProjects/:email", qtracker.getDISByProjects)
@@ -46,15 +51,16 @@ module.exports = app => {
     app.get("/qtracker/getRPByProjects/:email", qtracker.getRPByProjects)
     app.get("/qtracker/getISByProjects/:email", qtracker.getISByProjects)
 
-    app.post("/qtracker/updateStatus", qtracker.updateStatus)
-    app.post("/qtracker/updateObservations", qtracker.updateObservations)
-    app.post("/qtracker/updateHours", qtracker.updateHours)
-    app.post("/qtracker/updatePriority", qtracker.updatePriority)
+    app.post("/qtracker/updateStatus", qtracker.updateStatus) //Actualizar el status de una incidencia
+    app.post("/qtracker/updateObservations", qtracker.updateObservations) //Actualizar las obsevaciones de una incidencia
+    app.post("/qtracker/updateHours", qtracker.updateHours) //Actualizar las horas de una incidencia
+    app.post("/qtracker/updatePriority", qtracker.updatePriority) //Actualizar la prioridad de una incidencia
 
-    app.get("/statusData", qtracker.statusData)
-    app.get("/getProjects", qtracker.getProjects)
-    app.post("/submitProjects", qtracker.submitProjects)
+    app.get("/statusData", qtracker.statusData) //Select del status de las incidencais para la grafica
+    app.get("/getProjects", qtracker.getProjects) //Select de los proyectos
+    app.post("/submitProjects", qtracker.submitProjects) //Submit de los proyectos
 
+    //Descarga de las guias
     app.get("/downloadGuideES", qtracker.downloadGuideES)
     app.get("/downloadGuideEN", qtracker.downloadGuideEN)
   };

@@ -5,12 +5,13 @@ const fs = require("fs");
 
 //Retorna toda la información de la librería
 const getLibrary = async(req, res) =>{
+    //Select de los datos
     sql.query("SELECT library_families.id, library_project_types.id as project_type_id, project_type, library_component_types.id as component_type_id, type as component_type, library_component_brands.id as component_brand_id, brand as component_brand, library_component_disciplines.id as component_discipline_id, discipline as component_discipline, component_code, component_name, component_description FROM library_families JOIN library_component_types ON library_families.component_type_id = library_component_types.id JOIN library_component_brands ON library_families.component_brand_id = library_component_brands.id JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id JOIN library_component_has_project_type ON library_families.id = library_component_has_project_type.family_id JOIN library_project_types ON library_component_has_project_type.project_type_id = library_project_types.id GROUP BY library_families.id ORDER BY library_families.id", (err, results) =>{
         if(!results[0]){
             console.log("No library")
             res.status(401)
         }else{
-            for(let i = 0; i < results.length; i++){
+            for(let i = 0; i < results.length; i++){ //Por cada componente de la libreria cogemos los path de la imagen y el rfa
                 let path = './app/storage/library/images/' + results[i].component_code +".png";
                 let rfa_path = './app/storage/library/rfa/' + results[i].component_code +".rfa";
                 if (fs.existsSync(path)) {
@@ -164,11 +165,12 @@ const createComponent = async(req, res) =>{
     const project_types = req.body.project_types
     let componentCode = ""
     console.log(project_types)
-    await sql.query("SELECT code FROM library_component_disciplines WHERE id = ?", [componentDisciplineId], async(err, results) =>{
+    await sql.query("SELECT code FROM library_component_disciplines WHERE id = ?", [componentDisciplineId], async(err, results) =>{ //Cogemos el codigo de la disciplina
         if(!results[0]){
             console.log("Discipline does not exist")
         }else{
             componentCode = results[0].code
+            //Cogemos el id del ultimo componente creado para formar el nuevo
             await sql.query("SELECT library_families.id FROM library_families JOIN library_component_disciplines ON library_families.component_discipline_id = library_component_disciplines.id WHERE library_component_disciplines.id = ? ORDER BY library_families.id DESC LIMIT 1", [componentDisciplineId], async(err, results) =>{
                 if(!results[0]){
                     componentCode += "0001"
@@ -177,17 +179,19 @@ const createComponent = async(req, res) =>{
                     let base = "0000"
                     componentCode += base.substring(0, 4-newID.length) + newID
                 }
+                //Insertamos el componente nuevo
                 await sql.query("INSERT INTO library_families(component_type_id, component_brand_id, component_discipline_id, component_code, component_name, component_description) VALUES(?,?,?,?,?,?)", [componentTypeId, componentBrandId, componentDisciplineId, componentCode, componentName, componentDescription], async(err, results) =>{
                     if(err){
                         console.log(err)
                         res.status(401)
                     }else{
-                        await sql.query("SELECT id FROM library_families WHERE component_code = ?", [componentCode], async(err, results)=>{
+                        await sql.query("SELECT id FROM library_families WHERE component_code = ?", [componentCode], async(err, results)=>{ //Cogemos el id del componente recien creado
                             if(!results[0]){
                                 console.log("Component not found")
                             }else{
                                 const newComponentID = results[0].id
-                                for(let i = 0; i < project_types.length; i++){
+                                for(let i = 0; i < project_types.length; i++){ //Por cada proyecto al que pertenece
+                                    //Creamos la relacion componente-proyecto
                                     await sql.query("INSERT INTO library_component_has_project_type(family_id, project_type_id) VALUES(?,?)", [newComponentID, project_types[i]], async(err, results)=>{
                                         if(err){
                                             console.log(err)
@@ -217,11 +221,13 @@ const updateComponent = async(req, res) =>{
     const project_types = req.body.project_types
     const componentId = req.body.componentId
 
+    //Actualizamos el componente
     sql.query("UPDATE library_families SET component_type_id = ?, component_brand_id = ?, component_discipline_id = ?, component_name = ?, component_description = ? WHERE id = ?", [componentTypeId, componentBrandId, componentDisciplineId, componentName, componentDescription, componentId], (err, results) =>{
         if(err){
             console.log(err)
             res.status(401)
         }else{
+            //Volvemos a crear las relaciones componente-proyecto
             sql.query("DELETE FROM library_component_has_project_type WHERE family_id = ?", [componentId], (err, results) =>{
                 if(err){
                     console.log(err)
@@ -342,16 +348,16 @@ const updateFilters = async(req, res) =>{
     const brands = req.body.component_brands
     const projectTypes = req.body.project_types
 
-    for (let i = 0; i < types.length; i++) {
+    for (let i = 0; i < types.length; i++) { //Por cada tipo
         if(types[i].type && types[i].type != ""){
-            if(types[i].id){
+            if(types[i].id){ //Si ya existia lo actualizamos
                 sql.query("UPDATE library_component_types SET type = ? WHERE id = ?", [types[i].type, types[i].id], (err, results)=>{
                     if(err){
                         console.log(err)
                         res.status(401)
                     }
                 })
-            }else{
+            }else{ //Si no existia lo creamos
                 sql.query("INSERT INTO library_component_types(type) VALUES(?)", [types[i].type], (err, results)=>{
                     if(err){
                         console.log(err)
@@ -362,6 +368,7 @@ const updateFilters = async(req, res) =>{
         }        
     }
 
+    //Lo mismo que con los tipos
     for (let i = 0; i < projectTypes.length; i++) {
         if(projectTypes[i].project_type && projectTypes[i].project_type!= ""){
             if(projectTypes[i].id){
@@ -382,6 +389,7 @@ const updateFilters = async(req, res) =>{
         }        
     }
 
+    //Lo mismo que con los tipos
     for (let i = 0; i < disciplines.length; i++) {
         if(disciplines[i].discipline && disciplines[i].disciplines != "" && disciplines[i].code && disciplines[i].code != ""){
             if(disciplines[i].id){
@@ -402,6 +410,7 @@ const updateFilters = async(req, res) =>{
         }        
     }
 
+    //Lo mismo que con los tipos
     for (let i = 0; i < brands.length; i++) {
         if(brands[i].brand && brands[i].brand != ""){
             if(brands[i].id){

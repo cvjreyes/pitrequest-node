@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const inst_general = require("../inst_general/inst_general.controller");
 
+//Funciona exactamente igual que expansion joins solo que con otros campos
 let routes = (app) => {
   router.get("/getInstGeneralByProject/:project_id", inst_general.getInstGeneralByProject)
   router.get("/getSpecsByProject/:project_id", inst_general.getSpecsByProject)
