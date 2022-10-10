@@ -48,7 +48,8 @@ const updateProjects = async(req, res) =>{
                     }
                 })
             }
-            res.status(200)
+            res.send({success: true}).status(200)
+
         }
     })
 }
