@@ -3204,6 +3204,26 @@ const downloadGuideEN = async(req, res) =>{
     res.download("./app/storage/videos/PITRequest_gui_EN.mp4")
 }
 
+const getUrgentIncidences = async(req, res) =>{
+    const email = req.params.email
+    sql.query("SELECT id FROM users WHERE email = ?", [email], (err, results) =>{ //Cogemos el usuario admin
+        if(!results[0]){
+            res.status(401)
+        }else{
+            const user_id = results[0].id
+            //Comprobamos en cada tipo de incidencia cuantas de ellas tienen mas de dos semanas y estan pending o in progress y devolvemos la suma
+            sql.query("SELECT SUM(id) as urgents FROM(SELECT COUNT(id) as id FROM qtracker_general WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_isometric_sending WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_not_reporting_bfile WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_not_reporting_ifc_dgn_step WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_not_reporting_isometric WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_not_view_in_navis WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_not_working_component WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1) UNION ALL SELECT COUNT(id) as id FROM qtracker_request_report WHERE user_id = 131 AND datediff(curdate(), created_at) > 14 AND (status = 0 OR status = 1)) urgent", [user_id], (err, results) =>{
+                if(!results[0]){
+                    res.send({urgent: 0}).status(200)
+                }else{
+                    res.send({urgent: results[0].urgents}).status(200)
+                }
+            })
+        }
+    })
+    
+}
+
 module.exports = {
     requestNWC,
     requestNVN,
@@ -3255,5 +3275,6 @@ module.exports = {
     getProjects,
     submitProjects,
     downloadGuideES,
-    downloadGuideEN
+    downloadGuideEN,
+    getUrgentIncidences
   };

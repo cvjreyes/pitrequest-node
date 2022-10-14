@@ -36,6 +36,9 @@ module.exports = app => {
     app.get("/qtracker/getRP", qtracker.getRP)
     app.get("/qtracker/getIS", qtracker.getIS)
 
+    //Select de las incidencias urgentes de un usuario
+    app.get("/qtracker/urgent/:email", qtracker.getUrgentIncidences)
+
     //Select de las incidencias por usuario
     app.get("/qtracker/getNWCByProjects/:email", qtracker.getNWCByProjects)
     app.get("/qtracker/getNVNByProjects/:email", qtracker.getNVNByProjects)
