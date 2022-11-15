@@ -1678,35 +1678,91 @@ const getNWCByProjects = async(req, res) =>{
     //Select de las ids de los proyectos de los que forma parte un usuario
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            //Select para ver si hay incidencias con el admin_id que esta logeado
+            sql.query("SELECT DISTINCT qtracker_not_working_component.admin_id FROM qtracker_not_working_component LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned. NWC")
+                    res.status(200)
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){ //Hacemos un array con las ids de los administradores, que solo va a ser 1
+                        admins_id.push(results[i].admin_id)
+                    }
+                    //Cogemos las incidencias que forman parte de ese administrador
+                    sql.query("SELECT DISTINCT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
-            for(let i = 0; i < results.length; i++){ //Hacemos un array con las ids
+            for(let i = 0; i < results.length; i++){ //Hacemos un array con las ids de los proyectos
                 projects_ids.push(results[i].project_id)
             }
-            //Cogemos las incidencias que forman parte de esos proyectos
-            sql.query("SELECT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            //Select para ver si hay incidencias con el admin_id que esta logeado
+            sql.query("SELECT DISTINCT qtracker_not_working_component.admin_id FROM qtracker_not_working_component LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    //Cogemos las incidencias que forman parte de esos proyectos
+                    sql.query("SELECT DISTINCT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){ //Hacemos un array con las ids de los administradores, que solo va a ser 1
+                        admins_id.push(results[i].admin_id)
+                    }
+                    //Cogemos las incidencias que forman parte de esos proyectos y administradores
+                    sql.query("SELECT DISTINCT qtracker_not_working_component.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_working_component LEFT JOIN users ON qtracker_not_working_component.user_id = users.id LEFT JOIN projects ON qtracker_not_working_component.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_working_component.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        // console.log("Resultados NWC 2: " + JSON.stringify(results))
+                        // console.log("Resultados project_id NWC 2: " + JSON.stringify(projects_ids))
+                        // console.log("Resultados admin_id NWC 2: " + JSON.stringify(admins_id))
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
-
 }
 
 const getNVNByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned. NVN")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. NVN")
+                    sql.query("SELECT DISTINCT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1717,15 +1773,41 @@ const getDISByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned. DIS")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%DIS%'",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DIS%'",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. DIS")
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DIS%'",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%DIS%'",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1736,15 +1818,43 @@ const getPERByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+
+            console.log("This user has no projects assigned. DIS")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. DIS")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%PER%'",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%PER%'",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. DIS")
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%PER%'",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%PER%'",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1755,15 +1865,43 @@ const getMODByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+
+            console.log("This user has no projects assigned. DIS")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. DIS")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%MOD%'",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%MOD%'",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. DIS")
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%MOD%'",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%MOD%'",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1774,15 +1912,43 @@ const getDSOByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+
+            console.log("This user has no projects assigned. DIS")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. DIS")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%DSO%'",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DSO%'",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. DIS")
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DSO%'",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%DSO%'",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1793,15 +1959,43 @@ const getDORByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+
+            console.log("This user has no projects assigned. DIS")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. DIS")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%DOR%'",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DOR%'",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. DIS")
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DOR%'",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%DOR%'",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1812,15 +2006,43 @@ const getCITByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+
+            console.log("This user has no projects assigned. DIS")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. DIS")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%CIT%'",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%CIT%'",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. DIS")
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%CIT%'",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%CIT%'",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1830,15 +2052,42 @@ const getNRIByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            console.log("This user has no projects assigned. NVN")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. NVN")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. NVN")
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1848,33 +2097,88 @@ const getNRBByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            console.log("This user has no projects assigned. NVN")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. NVN")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_bfile.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. NVN")
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_bfile.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_bfile.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
 }
 
 const getNRIDSByProjects = async(req, res) =>{
+    
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            console.log("This user has no projects assigned. NVN")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. NVN")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. NVN")
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
@@ -1884,33 +2188,92 @@ const getRPByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            console.log("This user has no projects assigned. NVN")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. NVN")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results})
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. NVN")
+                    sql.query("SELECT DISTINCT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
 }
 
 const getISByProjects = async(req, res) =>{
+    
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects assigned.")
-            res.status(200)
+            console.log("This user has no projects assigned. NVN")
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 2. NVN")
+                    res.status(200)
+                }else{
+
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id WHERE admins.id IN (?)",[admins_id], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }
+            })
         }else{
             let projects_ids = []
             for(let i = 0; i < results.length; i++){
                 projects_ids.push(results[i].project_id)
             }
-            sql.query("SELECT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
-                res.json({rows: results}).status(200)
+            sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
+                if(!results[0]){
+                    console.log("This user has no projects assigned 3. NVN")
+                    sql.query("SELECT DISTINCT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
+                        res.json({rows: results})
+                    })
+                }else{
+                    let admins_id = []
+                    for(let i = 0; i < results.length; i++){
+                        admins_id.push(results[i].admin_id)
+                    }
+                    sql.query("SELECT DISTINCT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
+                        
+                        // console.log("Resultados 2: " + JSON.stringify(results))
+                        // console.log("Resultados project_id 2: " + JSON.stringify(projects_ids))
+                        // console.log("Resultados admin_id 2: " + JSON.stringify(admins_id))
+                        res.json({rows: results})
+                    })
+                }
             })
         }
     })
