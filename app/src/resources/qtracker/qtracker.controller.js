@@ -2219,9 +2219,9 @@ const getRPByProjects = async(req, res) =>{
                     }
                     sql.query("SELECT DISTINCT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?) OR admins.id IN (?)",[projects_ids, admins_id], (err, results)=>{
                         
-                        console.log("Resultados NWC 2: " + JSON.stringify(results))
-                        console.log("Resultados project_id NWC 2: " + JSON.stringify(projects_ids))
-                        console.log("Resultados admin_id NWC 2: " + JSON.stringify(admins_id))
+                        // console.log("Resultados NWC 2: " + JSON.stringify(results))
+                        // console.log("Resultados project_id NWC 2: " + JSON.stringify(projects_ids))
+                        // console.log("Resultados admin_id NWC 2: " + JSON.stringify(admins_id))
                         res.json({rows: results})
                     })
                 }
