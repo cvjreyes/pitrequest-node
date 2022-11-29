@@ -1681,7 +1681,7 @@ const getNWCByProjects = async(req, res) =>{
             //Select para ver si hay incidencias con el admin_id que esta logeado
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects and admin assigned. NWC")
+                    // console.log("This user has no projects and admin assigned. NWC")
                     res.status(200)
                 }else{
                     let admins_id = []
@@ -1727,7 +1727,7 @@ const getNVNByProjects = async(req, res) =>{
         if(!results[0]){
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects and admin assigned. NVN")
+                    // console.log("This user has no projects and admin assigned. NVN")
                     res.status(200)
                 }else{
 
@@ -1747,7 +1747,7 @@ const getNVNByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. NVN")
+                    // console.log("This user has no projects assigned 3. NVN")
                     sql.query("SELECT DISTINCT qtracker_not_view_in_navis.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_view_in_navis LEFT JOIN users ON qtracker_not_view_in_navis.user_id = users.id LEFT JOIN projects ON qtracker_not_view_in_navis.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -1772,7 +1772,7 @@ const getDISByProjects = async(req, res) =>{
         if(!results[0]){
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects and admin assigned. DIS")
+                    // console.log("This user has no projects and admin assigned. DIS")
                     res.status(200)
                 }else{
 
@@ -1792,7 +1792,7 @@ const getDISByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT qtracker_not_view_in_navis.admin_id FROM qtracker_not_view_in_navis LEFT JOIN users as admins ON qtracker_not_view_in_navis.admin_id = admins.id WHERE admins.email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. DIS")
+                    // console.log("This user has no projects assigned 3. DIS")
                     sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DIS%'",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -1816,10 +1816,10 @@ const getPERByProjects = async(req, res) =>{
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
 
-            console.log("This user has no projects and admin assigned. DIS")
+            // console.log("This user has no projects and admin assigned. DIS")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. DIS")
+                    // console.log("This user has no projects assigned 2. DIS")
                     res.status(200)
                 }else{
 
@@ -1839,7 +1839,7 @@ const getPERByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. DIS")
+                    // console.log("This user has no projects assigned 3. DIS")
                     sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%PER%'",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -1863,10 +1863,10 @@ const getMODByProjects = async(req, res) =>{
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
 
-            console.log("This user has no projects and admin assigned. DIS")
+            // console.log("This user has no projects and admin assigned. DIS")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. DIS")
+                    // console.log("This user has no projects assigned 2. DIS")
                     res.status(200)
                 }else{
 
@@ -1886,7 +1886,7 @@ const getMODByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. DIS")
+                    // console.log("This user has no projects assigned 3. DIS")
                     sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%MOD%'",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -1910,10 +1910,10 @@ const getDSOByProjects = async(req, res) =>{
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
 
-            console.log("This user has no projects and admin assigned. DIS")
+            // console.log("This user has no projects and admin assigned. DIS")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. DIS")
+                    // console.log("This user has no projects assigned 2. DIS")
                     res.status(200)
                 }else{
 
@@ -1933,7 +1933,7 @@ const getDSOByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. DIS")
+                    // console.log("This user has no projects assigned 3. DIS")
                     sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DSO%'",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -1957,10 +1957,10 @@ const getDORByProjects = async(req, res) =>{
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
 
-            console.log("This user has no projects and admin assigned. DIS")
+            // console.log("This user has no projects and admin assigned. DIS")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. DIS")
+                    // console.log("This user has no projects assigned 2. DIS")
                     res.status(200)
                 }else{
 
@@ -1980,7 +1980,7 @@ const getDORByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. DIS")
+                    // console.log("This user has no projects assigned 3. DIS")
                     sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%DOR%'",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -2004,10 +2004,10 @@ const getCITByProjects = async(req, res) =>{
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
 
-            console.log("This user has no projects and admin assigned. DIS")
+            // console.log("This user has no projects and admin assigned. DIS")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. DIS")
+                    // console.log("This user has no projects assigned 2. DIS")
                     res.status(200)
                 }else{
 
@@ -2027,7 +2027,7 @@ const getCITByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. DIS")
+                    // console.log("This user has no projects assigned 3. DIS")
                     sql.query("SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%CIT%'",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -2049,10 +2049,10 @@ const getNRIByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects and admin assigned. NVN")
+            // console.log("This user has no projects and admin assigned. NVN")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. NVN")
+                    // console.log("This user has no projects assigned 2. NVN")
                     res.status(200)
                 }else{
 
@@ -2072,7 +2072,7 @@ const getNRIByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. NVN")
+                    // console.log("This user has no projects assigned 3. NVN")
                     sql.query("SELECT DISTINCT qtracker_not_reporting_isometric.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_isometric LEFT JOIN users ON qtracker_not_reporting_isometric.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_isometric.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_isometric.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -2094,10 +2094,10 @@ const getNRBByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects and admin assigned. NVN")
+            // console.log("This user has no projects and admin assigned. NVN")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. NVN")
+                    // console.log("This user has no projects assigned 2. NVN")
                     res.status(200)
                 }else{
 
@@ -2117,7 +2117,7 @@ const getNRBByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. NVN")
+                    // console.log("This user has no projects assigned 3. NVN")
                     sql.query("SELECT DISTINCT qtracker_not_reporting_bfile.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_bfile LEFT JOIN users ON qtracker_not_reporting_bfile.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_bfile.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_bfile.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -2140,10 +2140,10 @@ const getNRIDSByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects and admin assigned. NVN")
+            // console.log("This user has no projects and admin assigned. NVN")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. NVN")
+                    // console.log("This user has no projects assigned 2. NVN")
                     res.status(200)
                 }else{
 
@@ -2163,7 +2163,7 @@ const getNRIDSByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. NVN")
+                    // console.log("This user has no projects assigned 3. NVN")
                     sql.query("SELECT DISTINCT qtracker_not_reporting_ifc_dgn_step.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_not_reporting_ifc_dgn_step LEFT JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id LEFT JOIN projects ON qtracker_not_reporting_ifc_dgn_step.project_id = projects.id LEFT JOIN users as admins ON qtracker_not_reporting_ifc_dgn_step.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -2185,10 +2185,10 @@ const getRPByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects and admin assigned. NVN")
+            // console.log("This user has no projects and admin assigned. NVN")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. NVN")
+                    // console.log("This user has no projects assigned 2. NVN")
                     res.status(200)
                 }else{
 
@@ -2208,7 +2208,7 @@ const getRPByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. NVN")
+                    // console.log("This user has no projects assigned 3. NVN")
                     sql.query("SELECT DISTINCT qtracker_request_report.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_request_report LEFT JOIN users ON qtracker_request_report.user_id = users.id LEFT JOIN projects ON qtracker_request_report.project_id = projects.id LEFT JOIN users as admins ON qtracker_request_report.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
@@ -2235,10 +2235,10 @@ const getISByProjects = async(req, res) =>{
     const email = req.params.email
     sql.query("SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?", [email], (err, results)=>{
         if(!results[0]){
-            console.log("This user has no projects and admin assigned. NVN")
+            // console.log("This user has no projects and admin assigned. NVN")
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 2. NVN")
+                    // console.log("This user has no projects assigned 2. NVN")
                     res.status(200)
                 }else{
 
@@ -2258,7 +2258,7 @@ const getISByProjects = async(req, res) =>{
             }
             sql.query("SELECT DISTINCT users.id FROM users where email = ?", [email], (err, results)=>{
                 if(!results[0]){
-                    console.log("This user has no projects assigned 3. NVN")
+                    // console.log("This user has no projects assigned 3. NVN")
                     sql.query("SELECT DISTINCT qtracker_isometric_sending.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_isometric_sending LEFT JOIN users ON qtracker_isometric_sending.user_id = users.id LEFT JOIN projects ON qtracker_isometric_sending.project_id = projects.id LEFT JOIN users as admins ON qtracker_isometric_sending.admin_id = admins.id WHERE projects.id IN (?)",[projects_ids], (err, results)=>{
                         res.json({rows: results})
                     })
