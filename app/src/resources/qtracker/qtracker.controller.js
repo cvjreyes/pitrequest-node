@@ -3339,6 +3339,7 @@ const statusData = (req, res) =>{
     let accepted = 0
     let rejected = 0
     let materials = 0
+    let readytoload = 0
 
     //Cogemos el estado de todas las incidencias y vamos guardando las sumas en contadores
     sql.query("SELECT `status`, COUNT(*) as qty FROM qtracker_not_working_component GROUP BY `status`", (err, results) =>{
@@ -3358,6 +3359,8 @@ const statusData = (req, res) =>{
                     rejected += results[i].qty
                 }else if(results[i].status == 4){
                     materials += results[i].qty
+                }else if(results[i].status == 5){
+                    readytoload += results[i].qty
                 }
             }
         }
@@ -3378,6 +3381,8 @@ const statusData = (req, res) =>{
                         rejected += results[i].qty
                     }else if(results[i].status == 4){
                         materials += results[i].qty
+                    }else if(results[i].status == 5){
+                        readytoload += results[i].qty
                     }
                 }
             }
@@ -3398,6 +3403,8 @@ const statusData = (req, res) =>{
                             rejected += results[i].qty
                         }else if(results[i].status == 4){
                             materials += results[i].qty
+                        }else if(results[i].status == 5){
+                            readytoload += results[i].qty
                         }
                     }
                 }
@@ -3418,6 +3425,8 @@ const statusData = (req, res) =>{
                                 rejected += results[i].qty
                             }else if(results[i].status == 4){
                                 materials += results[i].qty
+                            }else if(results[i].status == 5){
+                                readytoload += results[i].qty
                             }
                         }
                     }
@@ -3438,6 +3447,8 @@ const statusData = (req, res) =>{
                                     rejected += results[i].qty
                                 }else if(results[i].status == 4){
                                     materials += results[i].qty
+                                }else if(results[i].status == 5){
+                                    readytoload += results[i].qty
                                 }
                             }
                         }
@@ -3458,6 +3469,8 @@ const statusData = (req, res) =>{
                                         rejected += results[i].qty
                                     }else if(results[i].status == 4){
                                         materials += results[i].qty
+                                    }else if(results[i].status == 5){
+                                        readytoload += results[i].qty
                                     }
                                 }
                             }
@@ -3478,6 +3491,8 @@ const statusData = (req, res) =>{
                                             rejected += results[i].qty
                                         }else if(results[i].status == 4){
                                             materials += results[i].qty
+                                        }else if(results[i].status == 5){
+                                            readytoload += results[i].qty
                                         }
                                     }
                                 }
@@ -3498,10 +3513,12 @@ const statusData = (req, res) =>{
                                                 rejected += results[i].qty
                                             }else if(results[i].status == 4){
                                                 materials += results[i].qty
+                                            }else if(results[i].status == 5){
+                                                readytoload += results[i].qty
                                             }
                                         }
                                     }
-                                    res.send({pending: pending, progress: progress, accepted: accepted, rejected: rejected, materials: materials}).status(200)
+                                    res.send({pending: pending, progress: progress, accepted: accepted, rejected: rejected, materials: materials, readytoload: readytoload}).status(200)
                                 })
                             })
                         })
