@@ -2303,8 +2303,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     //Cogemos el email y el id del usuario que creo la incidencia
                     sql.query("SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
@@ -2396,8 +2398,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_not_view_in_navis.user_id FROM qtracker_not_view_in_navis JOIN users ON qtracker_not_view_in_navis.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
@@ -2475,8 +2479,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
@@ -2554,8 +2560,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_not_reporting_isometric.user_id FROM qtracker_not_reporting_isometric JOIN users ON qtracker_not_reporting_isometric.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
@@ -2633,8 +2641,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_not_reporting_bfile.user_id FROM qtracker_not_reporting_bfile JOIN users ON qtracker_not_reporting_bfile.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
@@ -2712,8 +2722,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_not_reporting_ifc_dgn_step.user_id FROM qtracker_not_reporting_ifc_dgn_step JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id WHERE incidence_number = ?SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
@@ -2790,8 +2802,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_request_report.user_id FROM qtracker_request_report JOIN users ON qtracker_request_report.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
@@ -2869,8 +2883,10 @@ const updateStatus = async(req, res) =>{
                         new_status = "set to ready"
                     }else if(status_id == 3){
                         new_status = "rejected"
-                    }else{
+                    }else if(status_id == 4){
                         new_status = "sent to materials"
+                    } else {
+                        new_status = "set to ready to load"
                     }
                     sql.query("SELECT users.email, qtracker_isometric_sending.user_id FROM qtracker_isometric_sending JOIN users ON qtracker_isometric_sending.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
