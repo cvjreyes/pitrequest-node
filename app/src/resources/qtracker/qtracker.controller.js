@@ -2287,6 +2287,7 @@ const updateStatus = async(req, res) =>{
     const email = req.body.email
     const project = req.body.project
     if(type == "NWC"){ //Tambien funciona igual para todos los tipos de incidencias
+        console.log("type: ", type);
         //Actualizamos el estado de la incidencia siempre que no se de el caso de que pase a estar aceptada y no se hayan imputado sus horas
         sql.query("UPDATE qtracker_not_working_component SET status = ? WHERE incidence_number = ? AND hours IS NOT NULL AND ((hours > 0 AND ? = 2) OR ? != 2)", [status_id, incidence_number, status_id, status_id], (err, results) =>{
             if(err){
@@ -2727,7 +2728,7 @@ const updateStatus = async(req, res) =>{
                     } else {
                         new_status = "set to ready to load"
                     }
-                    sql.query("SELECT users.email, qtracker_not_reporting_ifc_dgn_step.user_id FROM qtracker_not_reporting_ifc_dgn_step JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id WHERE incidence_number = ?SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
+                    sql.query("SELECT users.email, qtracker_not_reporting_ifc_dgn_step.user_id FROM qtracker_not_reporting_ifc_dgn_step JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id WHERE incidence_number = ?", [incidence_number],(err, results)=>{
                         const reciever = results[0].user_id
                         let reciever_email = results[0].email
                         sql.query("SELECT name FROM users WHERE email = ?", [email],(err, results)=>{
