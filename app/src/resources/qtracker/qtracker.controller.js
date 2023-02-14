@@ -1523,6 +1523,174 @@ const requestAIS = async (req, res) => {
   );
 };
 
+/* Information Management General */
+const requestINMG = async (req, res) => {
+  const name = req.body.user;
+  const description = req.body.description;
+  const email = req.body.user;
+  const has_attach = req.body.has_attach;
+  const project = req.body.project;
+  const priority = req.body.priority;
+  const carta = req.body.carta;
+  let user_id = null;
+
+  sql.query(
+    "SELECT code FROM projects WHERE name = ?",
+    [project],
+    (err, results) => {
+      if (!results[0]) {
+        res.status(401);
+      } else {
+        let ref_code = results[0].code + "-IM_GEN000001";
+        sql.query(
+          "SELECT COUNT(id) as id FROM qtracker_general WHERE incidence_number like '%IM_GEN%'",
+          (err, results) => {
+            if (!results) {
+              results = [];
+              results[0] = null;
+            }
+            if (!results[0]) {
+            } else {
+              ref_code =
+                ref_code.substring(
+                  0,
+                  ref_code.length - (results[0].id + 1).toString().length
+                ) + (results[0].id + 1).toString();
+            }
+            sql.query(
+              "SELECT id FROM users WHERE email = ?",
+              [email],
+              (err, results) => {
+                if (!results[0]) {
+                  res.status(401);
+                } else {
+                  user_id = results[0].id;
+                  sql.query(
+                    "SELECT id, default_admin_id FROM projects WHERE name = ?",
+                    [project],
+                    (err, results) => {
+                      const project_id = results[0].id;
+                      const admin_id = results[0].default_admin_id;
+                      sql.query(
+                        "INSERT INTO qtracker_general(incidence_number, project_id, name, description, user_id, attach, admin_id, priority, carta) VALUES(?,?,?,?,?,?,?,?,?)",
+                        [
+                          ref_code,
+                          project_id,
+                          name,
+                          description,
+                          user_id,
+                          has_attach,
+                          admin_id,
+                          priority,
+                          carta,
+                        ],
+                        (err, results) => {
+                          if (err) {
+                            console.log(err);
+                            res.status(401);
+                          } else {
+                            if (process.env.NODE_MAILING == "1") {
+                              // create reusable transporter object using the default SMTP transport
+                              var transporter = nodemailer.createTransport({
+                                host: "es001vs0064",
+                                port: 25,
+                                secure: false,
+                                auth: {
+                                  user: "3DTracker@technipenergies.com",
+                                  pass: "1Q2w3e4r..24",
+                                },
+                              });
+
+                              let priorityText = "";
+
+                              if (priority == 0) {
+                                priorityText = "Low";
+                              } else if (priority == 1) {
+                                priorityText = "Medium";
+                              } else {
+                                priorityText = "High";
+                              }
+
+                              let project_name = project;
+
+                              if (carta) {
+                                project_name + " - " + carta;
+                              }
+
+                              const html_message =
+                                "<p><b>INCIDENCE</b> CAN'T ACCESS TO INFORMATION MANAGEMENT</p> <p><b>REFERENCE</b> " +
+                                ref_code +
+                                " </p> <p><b>PROJECT</b> " +
+                                project_name +
+                                " </p> <p><b>USER</b> " +
+                                email +
+                                "</p> <p><b>NAME</b> " +
+                                name +
+                                "</p> <p><b>DESCRIPTION</b> " +
+                                description +
+                                "</p> <p><b>PRIORITY</b> " +
+                                priorityText +
+                                "</p>";
+
+                              sql.query(
+                                "SELECT email FROM users WHERE id = ?",
+                                [admin_id],
+                                (err, results) => {
+                                  if (!results[0]) {
+                                  } else {
+                                    if (results[0].email == "super@user.com") {
+                                      results[0].email =
+                                        "sean.saez-fuller@technipenergies.com";
+                                    }
+                                    transporter.sendMail(
+                                      {
+                                        from: "3DTracker@technipenergies.com",
+                                        to: results[0].email,
+                                        subject: project + " " + ref_code,
+                                        text: ref_code,
+
+                                        html: html_message,
+                                      },
+                                      (err, info) => {
+                                        console.log(info.envelope);
+                                        console.log(info.messageId);
+                                      }
+                                    );
+                                  }
+                                }
+                              );
+                              transporter.sendMail(
+                                {
+                                  from: "3DTracker@technipenergies.com",
+                                  to: email,
+                                  subject: project + " " + ref_code,
+                                  text: ref_code,
+
+                                  html: html_message,
+                                },
+                                (err, info) => {
+                                  console.log(info.envelope);
+                                  console.log(info.messageId);
+                                }
+                              );
+                            }
+
+                            res.send({ filename: ref_code }).status(200);
+                          }
+                        }
+                      );
+                    }
+                  );
+                }
+              }
+            );
+          }
+        );
+      }
+    }
+  );
+};
+
 /* Change Aplication */
 const requestCHA = async (req, res) => {
   const name = req.body.name;
@@ -2828,6 +2996,16 @@ const getAIS = async (req, res) => {
   );
 };
 
+/* Information Management General */
+const getINMG = async (req, res) => {
+  sql.query(
+    "SELECT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id  WHERE incidence_number like '%IM_GEN%'",
+    (err, results) => {
+      res.json({ rows: results }).status(200);
+    }
+  );
+};
+
 /* Change Application */
 const getCHA = async (req, res) => {
   sql.query(
@@ -3502,6 +3680,72 @@ const getAISByProjects = async (req, res) => {
               }
               sql.query(
                 "SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%AIS%'",
+                [projects_ids, admins_id],
+                (err, results) => {
+                  res.json({ rows: results });
+                }
+              );
+            }
+          }
+        );
+      }
+    }
+  );
+};
+
+/* Information Management General */
+const getINMGByProjects = async (req, res) => {
+  const email = req.params.email;
+  sql.query(
+    "SELECT model_has_projects.project_id FROM users JOIN model_has_projects ON users.id = model_has_projects.user_id WHERE users.email = ?",
+    [email],
+    (err, results) => {
+      if (!results[0]) {
+        sql.query(
+          "SELECT DISTINCT users.id FROM users where email = ?",
+          [email],
+          (err, results) => {
+            if (!results[0]) {
+              res.status(200);
+            } else {
+              let admins_id = [];
+              for (let i = 0; i < results.length; i++) {
+                admins_id.push(results[i].id);
+              }
+              sql.query(
+                "SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE admins.id IN (?) AND incidence_number like '%IM_GEN%'",
+                [admins_id],
+                (err, results) => {
+                  res.json({ rows: results });
+                }
+              );
+            }
+          }
+        );
+      } else {
+        let projects_ids = [];
+        for (let i = 0; i < results.length; i++) {
+          projects_ids.push(results[i].project_id);
+        }
+        sql.query(
+          "SELECT DISTINCT users.id FROM users where email = ?",
+          [email],
+          (err, results) => {
+            if (!results[0]) {
+              sql.query(
+                "SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE projects.id IN (?) AND incidence_number like '%IM_GEN%'",
+                [projects_ids],
+                (err, results) => {
+                  res.json({ rows: results });
+                }
+              );
+            } else {
+              let admins_id = [];
+              for (let i = 0; i < results.length; i++) {
+                admins_id.push(results[i].id);
+              }
+              sql.query(
+                "SELECT DISTINCT qtracker_general.*, projects.name as project, projects.code as code, users.name as user, admins.name as admin, admins.email as email FROM qtracker_general LEFT JOIN users ON qtracker_general.user_id = users.id LEFT JOIN projects ON qtracker_general.project_id = projects.id LEFT JOIN users as admins ON qtracker_general.admin_id = admins.id WHERE (projects.id IN (?) OR admins.id IN (?)) AND incidence_number like '%IM_GEN%'",
                 [projects_ids, admins_id],
                 (err, results) => {
                   res.json({ rows: results });
@@ -4286,6 +4530,7 @@ const updateStatus = async (req, res) => {
     type == "DOR" ||
     type == "CIT" ||
     type == "AIS" ||
+    type == "IM_GEN" ||
     type == "CHA" ||
     type == "OTH"
   ) {
@@ -5171,6 +5416,19 @@ const updateObservations = async (req, res) => {
         }
       }
     );
+  } else if (incidence_number.includes("IM_GEN")) {
+    sql.query(
+      "UPDATE qtracker_general SET observations = ? WHERE incidence_number = ?",
+      [observation, incidence_number],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+          res.send({ success: false }).status(401);
+        } else {
+          res.send({ success: true }).status(200);
+        }
+      }
+    );
   } else if (incidence_number.includes("CHA")) {
     sql.query(
       "UPDATE qtracker_general SET observations = ? WHERE incidence_number = ?",
@@ -5386,6 +5644,19 @@ const updateHours = async (req, res) => {
         }
       }
     );
+  } else if (incidence_number.includes("IM_GEN")) {
+    sql.query(
+      "UPDATE qtracker_general SET hours = ? WHERE incidence_number = ?",
+      [hours, incidence_number],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+          res.send({ success: false }).status(401);
+        } else {
+          res.send({ success: true }).status(200);
+        }
+      }
+    );
   } else if (incidence_number.includes("CHA")) {
     sql.query(
       "UPDATE qtracker_general SET hours = ? WHERE incidence_number = ?",
@@ -5579,6 +5850,19 @@ const updatePriority = async (req, res) => {
       }
     );
   } else if (type == "AIS") {
+    sql.query(
+      "UPDATE qtracker_general SET priority = ? WHERE incidence_number = ?",
+      [priority_id, incidence_number],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+          res.send({ success: false }).status(401);
+        } else {
+          res.send({ success: true }).status(200);
+        }
+      }
+    );
+  } else if (type == "IM_GEN") {
     sql.query(
       "UPDATE qtracker_general SET priority = ? WHERE incidence_number = ?",
       [priority_id, incidence_number],
@@ -6014,6 +6298,7 @@ module.exports = {
   requestDOR,
   requestCIT,
   requestAIS,
+  requestINMG,
   requestCHA,
   requestOTH,
   requestNRI,
@@ -6033,6 +6318,7 @@ module.exports = {
   getDOR,
   getCIT,
   getAIS,
+  getINMG,
   getCHA,
   getOTH,
   getNRI,
@@ -6049,6 +6335,7 @@ module.exports = {
   getDORByProjects,
   getCITByProjects,
   getAISByProjects,
+  getINMGByProjects,
   getCHAByProjects,
   getOTHByProjects,
   getNRIByProjects,
