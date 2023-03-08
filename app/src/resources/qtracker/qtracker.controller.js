@@ -4487,10 +4487,8 @@ const updateStatus = async (req, res) => {
   const type = req.body.type;
   const email = req.body.email;
   const project = req.body.project;
-  console.log(type);
   if (type == "NWC") {
     //Tambien funciona igual para todos los tipos de incidencias
-    console.log("type: ", type);
     //Actualizamos el estado de la incidencia siempre que no se de el caso de que pase a estar aceptada y no se hayan imputado sus horas
     sql.query(
       "UPDATE qtracker_not_working_component SET status = ? WHERE incidence_number = ? AND hours IS NOT NULL AND ((hours > 0 AND ? = 2) OR ? != 2)",
@@ -4563,7 +4561,6 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        console.log(observation);
                                         var transporter =
                                           nodemailer.createTransport({
                                             host: "es001vs0064",
@@ -4704,47 +4701,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_not_view_in_navis WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: '3DTracker@technipenergies.com"',
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -4840,47 +4860,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: '3DTracker@technipenergies.com"',
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -4964,47 +5007,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_not_reporting_isometric WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: "3DTracker@technipenergies.com",
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -5088,47 +5154,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_not_reporting_bfile WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: "3DTracker@technipenergies.com",
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -5212,47 +5301,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_not_reporting_ifc_dgn_step WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: "3DTracker@technipenergies.com",
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -5336,47 +5448,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_request_report WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: "3DTracker@technipenergies.com",
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -5460,47 +5595,70 @@ const updateStatus = async (req, res) => {
                                 res.send({ success: false }).status(401);
                               } else {
                                 if (process.env.NODE_MAILING == "1") {
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  let observation = null;
+                                  sql.query(
+                                    "SELECT observations FROM qtracker_isometric_sending WHERE incidence_number = ?",
+                                    [incidence_number],
+                                    (err, results) => {
+                                      if (results[0]) {
+                                        observation = results[0].observations;
+                                        var transporter =
+                                          nodemailer.createTransport({
+                                            host: "es001vs0064",
+                                            port: 25,
+                                            secure: false,
+                                            auth: {
+                                              user: "3DTracker@technipenergies.com",
+                                              pass: "1Q2w3e4r..24",
+                                            },
+                                          });
 
-                                  if (reciever_email == "super@user.com") {
-                                    reciever_email =
-                                      "sean.saez-fuller@technipenergies.com";
-                                  }
+                                        if (
+                                          reciever_email == "super@user.com"
+                                        ) {
+                                          reciever_email =
+                                            "sean.saez-fuller@technipenergies.com";
+                                        }
 
-                                  const html_message =
-                                    "<p>" +
-                                    username +
-                                    " has " +
-                                    new_status +
-                                    " your incidence with code " +
-                                    incidence_number +
-                                    ".</p>";
+                                        let html_message =
+                                          "<p>" +
+                                          username +
+                                          " has " +
+                                          new_status +
+                                          " your incidence with code " +
+                                          incidence_number +
+                                          ".</p>";
+                                        if (observation != null) {
+                                          html_message =
+                                            "<p>" +
+                                            username +
+                                            " has " +
+                                            new_status +
+                                            " your incidence with code " +
+                                            incidence_number +
+                                            ".</p> <p> Observations: " +
+                                            observation;
+                                        }
+                                        transporter.sendMail(
+                                          {
+                                            from: "3DTracker@technipenergies.com",
+                                            to: reciever_email,
+                                            subject:
+                                              project +
+                                              " " +
+                                              incidence_number +
+                                              " has been " +
+                                              new_status,
+                                            text: incidence_number,
 
-                                  transporter.sendMail(
-                                    {
-                                      from: "3DTracker@technipenergies.com",
-                                      to: reciever_email,
-                                      subject:
-                                        project +
-                                        " " +
-                                        incidence_number +
-                                        " has been " +
-                                        new_status,
-                                      text: incidence_number,
-
-                                      html: html_message,
-                                    },
-                                    (err, info) => {
-                                      console.log(info.envelope);
-                                      console.log(info.messageId);
+                                            html: html_message,
+                                          },
+                                          (err, info) => {
+                                            console.log(info.envelope);
+                                            console.log(info.messageId);
+                                          }
+                                        );
+                                      }
                                     }
                                   );
                                 }
@@ -5530,6 +5688,8 @@ const updateStatus = async (req, res) => {
 const updateObservations = async (req, res) => {
   const incidence_number = req.body.incidence_number;
   const observation = req.body.observation;
+  const email = req.body.email;
+  const username = req.body.username;
 
   if (incidence_number.includes("NRIDS")) {
     sql.query(
@@ -5540,6 +5700,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_not_reporting_ifc_dgn_step.user_id FROM qtracker_not_reporting_ifc_dgn_step JOIN users ON qtracker_not_reporting_ifc_dgn_step.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_not_reporting_ifc_dgn_step WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5553,6 +5812,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_not_working_component.user_id FROM qtracker_not_working_component JOIN users ON qtracker_not_working_component.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_not_working_component WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5566,6 +5924,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_not_view_in_navis.user_id FROM qtracker_not_view_in_navis JOIN users ON qtracker_not_view_in_navis.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_not_view_in_navis WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5579,6 +6036,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5592,6 +6148,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5605,6 +6260,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5618,6 +6372,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5631,6 +6484,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5644,6 +6596,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5657,6 +6708,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5670,6 +6820,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5683,6 +6932,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5696,6 +7044,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5709,6 +7156,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_general.user_id FROM qtracker_general JOIN users ON qtracker_general.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_general WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5722,6 +7268,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_not_reporting_isometric.user_id FROM qtracker_not_reporting_isometric JOIN users ON qtracker_not_reporting_isometric.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_not_reporting_isometric WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5735,6 +7380,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_not_reporting_bfile.user_id FROM qtracker_not_reporting_bfile JOIN users ON qtracker_not_reporting_bfile.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_not_reporting_bfile WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5748,6 +7492,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_request_report.user_id FROM qtracker_request_report JOIN users ON qtracker_request_report.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_request_report WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -5761,6 +7604,105 @@ const updateObservations = async (req, res) => {
           console.log(err);
           res.send({ success: false }).status(401);
         } else {
+          sql.query(
+            "SELECT users.email, qtracker_isometric_sending.user_id FROM qtracker_isometric_sending JOIN users ON qtracker_isometric_sending.user_id = users.id WHERE incidence_number = ?",
+            [incidence_number],
+            (err, results) => {
+              const reciever = results[0].user_id;
+              let reciever_email = results[0].email;
+              console.log(reciever, reciever_email);
+              sql.query(
+                "SELECT name FROM users WHERE email = ?",
+                [email],
+                (err, results) => {
+                  const username = results[0].name;
+                  sql.query(
+                    "INSERT INTO notifications(users_id, text) VALUES(?,?)",
+                    [
+                      reciever,
+                      "Your request " +
+                        incidence_number +
+                        " changed observation by " +
+                        username +
+                        ".",
+                    ],
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                        res.send({ success: false }).status(401);
+                      } else {
+                        if (err) {
+                          console.log(err);
+                          res.send({ success: false }).status(401);
+                        } else {
+                          if (process.env.NODE_MAILING == "1") {
+                            let observation = null;
+                            sql.query(
+                              "SELECT observations FROM qtracker_isometric_sending WHERE incidence_number = ?",
+                              [incidence_number],
+                              (err, results) => {
+                                if (results[0]) {
+                                  observation = results[0].observations;
+                                  var transporter = nodemailer.createTransport({
+                                    host: "es001vs0064",
+                                    port: 25,
+                                    secure: false,
+                                    auth: {
+                                      user: "3DTracker@technipenergies.com",
+                                      pass: "1Q2w3e4r..24",
+                                    },
+                                  });
+
+                                  if (reciever_email == "super@user.com") {
+                                    reciever_email =
+                                      "sean.saez-fuller@technipenergies.com";
+                                  }
+
+                                  let html_message =
+                                    "<p>" +
+                                    username +
+                                    " has changed the observation of " +
+                                    " your incidence with code " +
+                                    incidence_number +
+                                    ".</p>";
+                                  if (observation != null) {
+                                    html_message =
+                                      "<p>" +
+                                      username +
+                                      " has changed the observation of " +
+                                      " your incidence with code " +
+                                      incidence_number +
+                                      ".</p> <p> <b>Observations: </b>" +
+                                      observation;
+                                  }
+                                  transporter.sendMail(
+                                    {
+                                      from: "3DTracker@technipenergies.com",
+                                      to: reciever_email,
+                                      subject:
+                                        " Changed Observation in incidence " +
+                                        incidence_number,
+                                      text: incidence_number,
+
+                                      html: html_message,
+                                    },
+                                    (err, info) => {
+                                      console.log(info.envelope);
+                                      console.log(info.messageId);
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    }
+                  );
+                }
+              );
+            }
+          );
           res.send({ success: true }).status(200);
         }
       }
@@ -6016,6 +7958,7 @@ const updatePriority = async (req, res) => {
   const email = req.body.email;
   const project = req.body.project;
 
+  // console.log("Body: ", req.body.priority_id);
   if (type == "NWC") {
     sql.query(
       "UPDATE qtracker_not_working_component SET priority = ? WHERE incidence_number = ?",
