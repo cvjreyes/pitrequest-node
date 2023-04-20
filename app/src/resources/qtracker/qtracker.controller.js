@@ -6,6 +6,22 @@ const fs = require("fs");
 const { resourceLimits } = require("worker_threads");
 const { send } = require("express/lib/response");
 
+function useTransporter() {
+  // create reusable transporter object using the default SMTP transport
+  return nodemailer.createTransport({
+    host: "es001vs0064",
+    port: 25,
+    secure: false,
+    auth: {
+      user: "3DTracker@technipenergies.com",
+      pass: "1Q2w3e4r..24",
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+}
+
 //Todas las requests funcionan igual pero tienen campos diferentes
 const requestNWC = async (req, res) => {
   const spref = req.body.spref;
@@ -80,15 +96,7 @@ const requestNWC = async (req, res) => {
                             //Enviamos un correo al administrador del proyecto conforme se ha creado la request
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -247,15 +255,7 @@ const requestNVN = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -415,15 +415,7 @@ const requestDIS = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -583,15 +575,7 @@ const requestPER = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -751,15 +735,7 @@ const requestMOD = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -919,15 +895,7 @@ const requestDSO = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -1087,15 +1055,7 @@ const requestDOR = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -1255,15 +1215,7 @@ const requestCIT = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -1423,15 +1375,7 @@ const requestAIS = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -1591,15 +1535,7 @@ const requestINMG = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -1759,15 +1695,7 @@ const requestINMI = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -1927,15 +1855,7 @@ const requestCHA = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -2095,15 +2015,7 @@ const requestOTH = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -2262,15 +2174,7 @@ const requestNRI = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -2429,15 +2333,7 @@ const requestNRB = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -2591,15 +2487,7 @@ const requestNRIDS = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -2755,15 +2643,7 @@ const requestRR = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -2924,15 +2804,7 @@ const requestIS = async (req, res) => {
                           } else {
                             if (process.env.NODE_MAILING == "1") {
                               // create reusable transporter object using the default SMTP transport
-                              var transporter = nodemailer.createTransport({
-                                host: "es001vs0064",
-                                port: 25,
-                                secure: false,
-                                auth: {
-                                  user: "3DTracker@technipenergies.com",
-                                  pass: "1Q2w3e4r..24",
-                                },
-                              });
+                              var transporter = useTransporter();
 
                               let priorityText = "";
 
@@ -4561,16 +4433,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -4708,16 +4571,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -4867,16 +4721,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -5014,16 +4859,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -5161,16 +4997,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -5308,16 +5135,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -5455,16 +5273,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -5602,16 +5411,7 @@ const updateStatus = async (req, res) => {
                                     (err, results) => {
                                       if (results[0]) {
                                         observation = results[0].observations;
-                                        var transporter =
-                                          nodemailer.createTransport({
-                                            host: "es001vs0064",
-                                            port: 25,
-                                            secure: false,
-                                            auth: {
-                                              user: "3DTracker@technipenergies.com",
-                                              pass: "1Q2w3e4r..24",
-                                            },
-                                          });
+                                        var transporter = useTransporter();
 
                                         if (
                                           reciever_email == "super@user.com"
@@ -5739,15 +5539,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -5851,15 +5643,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -5963,15 +5747,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6075,15 +5851,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6187,15 +5955,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6299,15 +6059,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6411,15 +6163,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6523,15 +6267,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6635,15 +6371,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6747,15 +6475,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6859,15 +6579,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -6971,15 +6683,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -7083,15 +6787,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -7195,15 +6891,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -7307,15 +6995,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -7419,15 +7099,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -7531,15 +7203,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =
@@ -7643,15 +7307,7 @@ const updateObservations = async (req, res) => {
                               (err, results) => {
                                 if (results[0]) {
                                   observation = results[0].observations;
-                                  var transporter = nodemailer.createTransport({
-                                    host: "es001vs0064",
-                                    port: 25,
-                                    secure: false,
-                                    auth: {
-                                      user: "3DTracker@technipenergies.com",
-                                      pass: "1Q2w3e4r..24",
-                                    },
-                                  });
+                                  var transporter = useTransporter();
 
                                   if (reciever_email == "super@user.com") {
                                     reciever_email =

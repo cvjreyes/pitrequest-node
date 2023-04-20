@@ -3,6 +3,22 @@ const sql = require("../../db.js");
 const md5 = require("md5");
 const nodemailer = require("nodemailer");
 
+function useTransporter() {
+  // create reusable transporter object using the default SMTP transport
+  return nodemailer.createTransport({
+    host: "es001vs0064",
+    port: 25,
+    secure: false,
+    auth: {
+      user: "3DTracker@technipenergies.com",
+      pass: "1Q2w3e4r..24",
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+}
+
 // Create and Save a new user
 exports.create = (req, res) => {
   // Validate request
@@ -576,15 +592,7 @@ exports.submitUserRequest = async (req, res) => {
   const project = req.body.project;
   const otherproject = req.body.otherproject;
 
-  var transporter = nodemailer.createTransport({
-    host: "es001vs0064",
-    port: 25,
-    secure: false,
-    auth: {
-      user: "3DTracker@technipenergies.com",
-      pass: "1Q2w3e4r..24",
-    },
-  });
+  var transporter = useTransporter()
 
   let html_message;
 
@@ -739,15 +747,7 @@ exports.rejectAccessRequest = async (req, res) => {
           (err, results) => {
             const email = results[0].email;
             const project = results[0].name;
-            var transporter = nodemailer.createTransport({
-              host: "es001vs0064",
-              port: 25,
-              secure: false,
-              auth: {
-                user: "3DTracker@technipenergies.com",
-                pass: "1Q2w3e4r..24",
-              },
-            });
+            var transporter = useTransporter()
             html_message =
               "<p>The administrator " +
               user +
@@ -848,16 +848,7 @@ exports.acceptAccessRequest = async (req, res) => {
                                         (err, results) => {
                                           const email = results[0].email;
                                           const project = results[0].name;
-                                          var transporter =
-                                            nodemailer.createTransport({
-                                              host: "es001vs0064",
-                                              port: 25,
-                                              secure: false,
-                                              auth: {
-                                                user: "3DTracker@technipenergies.com",
-                                                pass: "1Q2w3e4r..24",
-                                              },
-                                            });
+                                          var transporter = useTransporter()
                                           html_message =
                                             "<p>The administrator " +
                                             user +
